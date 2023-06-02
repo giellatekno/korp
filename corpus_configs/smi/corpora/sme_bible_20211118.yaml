@@ -6,7 +6,7 @@ title:
 description:
   eng: Texts on religion
 
-modes:
+mode:
   - name: default
 
 pos_attributes:

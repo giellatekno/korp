@@ -11,7 +11,7 @@ pos_attributes:
   - pos: pos
 struct_attributes:
 
-modes:
+mode:
   - name: default
 context:
   - label:
