@@ -1,0 +1,9 @@
+order: 3
+label:
+  nob: "Sørsamiske tekster"
+  eng: "South sami texts"
+  sme: "Lullisámi teavsttat"
+  fin: "Eteläsaamen tekstit"
+primaryColor: '#EDFCD5'
+primaryLight: '#f7fceb'
+wordpicture: false

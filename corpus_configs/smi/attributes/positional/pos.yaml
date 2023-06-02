@@ -1,0 +1,82 @@
+order: 0
+label:
+  eng: part-of-speech
+  nob: ordklasse
+dataset:
+  A: A
+  N: N
+  V: V
+  Adv: Adv
+  Po: Po
+  Pr: Pr
+  Pron: Pron
+  Det: Det
+  Num: Num
+  Cmp_SplitR: Cmp_SplitR
+  Cmp_Sh: Cmp_Sh
+  CmpNP_First: CmpNP_First
+  CmpNP_None: CmpNP_None
+  Cmp_SgNom: Cmp_SgNom
+  Pcle: Pcle
+  PUNCT: PUNCT
+  CC: CC
+  Interj: Interj
+  CS: CS
+  CLB: CLB
+  ___: ___
+extended_component: datasetSelect
+opts:
+  is: "="
+  is_not: "!="
+translation:
+  A:
+    eng: Adjective
+    nob: Adjektiv
+  N:
+    eng: Noun
+    nob: Substantiv
+  V:
+    eng: Verb
+    nob: Verb
+  Adv:
+    eng: Adverb
+    nob: Adverb
+  Po:
+    eng: TODO
+  Pr: Pr
+    eng: TODO
+  Pron:
+    eng: Pronoun
+    nob: Pronomen
+  Det:
+    eng: TODO
+  Num:
+    eng: TODO
+  Cmp_SplitR:
+    eng: TODO
+  Cmp_Sh:
+    eng: TODO
+  CmpNP_First:
+    eng: TODO
+  CmpNP_None:
+    eng: TODO
+  Cmp_SgNom:
+    eng: TODO
+  Pcle:
+    eng: Particle TODO
+    nob: Partikkel TODO
+  PUNCT:
+    eng: Punctuation TODO
+    nob: Punktasjon TODO
+  CC:
+    eng: TODO
+  Interj:
+    eng: Interjection TODO
+    nob: Interjeksjon TODO
+  CS:
+    eng: TODO
+  CLB:
+    eng: TODO
+  ___:
+    eng: TODO
+  

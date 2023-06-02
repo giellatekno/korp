@@ -1,0 +1,9 @@
+order: 5
+label:
+  nob: "Skoltsamiske tekster"
+  eng: "Skolt Saami texts"
+  sme: "Nuortalaš teavsttat"
+  fin: "Koltansaamen tekstit"
+primaryColor: '#EDFCD5'
+primaryLight: '#f7fceb'
+wordpicture: false

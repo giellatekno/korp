@@ -1,0 +1,25 @@
+id: sme_bible_20211118
+title:
+  eng: Religion texts
+  nob: Religiøse tekster TODO
+  sme: Religion texts TODO
+description:
+  eng: Texts on religion
+
+modes:
+  - name: default
+
+pos_attributes:
+  - lemma: lemma
+  - pos: pos
+struct_attributes:
+context:
+  - label:
+      eng: 1 sentence
+      nob: 1 setning
+    value: 1 sentence
+within:
+  - label:
+      eng: sentence
+      nob: setning
+    value: sentence

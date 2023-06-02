@@ -1,0 +1,9 @@
+order: 2
+label:
+  nob: "Lulesamiske tekster"
+  eng: "Lule sami texts"
+  sme: "Julevsámi teavsttat"
+  fin: "Luulajansaamen tekstit"
+primaryColor: '#E0F4F4'
+primaryLight: '#F2FFFF'
+wordpicture: false
