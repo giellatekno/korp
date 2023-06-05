@@ -11,10 +11,10 @@ pos_attributes:
   - lemma: lemma
   - pos: pos
 struct_attributes:
-  text_title:
-    label:
-      eng: Title
-      nob: Tittel
+  - text_title:
+      label:
+        eng: Title
+        nob: Tittel
       opts:
         is: "="
         is_not: "!="

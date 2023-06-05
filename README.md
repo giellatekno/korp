@@ -117,6 +117,13 @@ korp-frontend-other - static nginx, exposed at port 1345, run with KORP_BACKEND_
     podman run -d -p 1345:80 -e "KORP_BACKEND_URL=https://gtweb.uit.no/backend/korp-other" --name korp-frontend-other korp-frontend
 ```
 
+
+# run korp-backend on the server
+```
+podman run --privileged --rm -d -p 1342:1234 -v /corpora/gt_cwb:/corpora/gt_cwb -v /home/anders/korp/corpus_configs/smi:/opt/korp-backend/corpus_config -v /home/anders/korp/config.py:/korp/korp-backend/instance/config.py --security-opt label=disable --name korp-backend-smi korp-backend
+
+```
+
 ## Containers
 
 Container (name): `korp-backend-smi`, gunicorn hosting the korp backend,
