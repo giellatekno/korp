@@ -5,7 +5,7 @@ title:
 description:
   eng: Bible texts
 mode:
-  - name: sma
+  - name: smj
 pos_attributes:
   - lemma: lemma
   - pos: pos
