@@ -10,6 +10,7 @@ mode:
 pos_attributes:
   - lemma: lemma
   - pos: pos
+  - msd: msd
 struct_attributes:
   - text_title:
       label:
