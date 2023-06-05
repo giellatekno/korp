@@ -1,10 +1,10 @@
-id: sme_bible_20211118
+id: sme_blogs_20211118
 title:
-  eng: Religion texts
-  nob: Religiøse tekster TODO
-  sme: Religion texts TODO
+  eng: Blog texts
+  nob: Bloggtekster
 description:
-  eng: Texts on religion
+  eng: A collection of blog texts
+  nob: En samling av bloggtekster
 mode:
   - name: default
 pos_attributes:
