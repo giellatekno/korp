@@ -1,0 +1,28 @@
+id: smn_science_20211118
+title:
+  eng: Science texts
+description:
+  eng: A collection of science texts such as masters theses, phd theses, and articles
+mode:
+  - name: smn
+pos_attributes:
+  - lemma: lemma
+  - pos: pos
+struct_attributes:
+  - text_title:
+      label:
+        eng: Title
+        nob: Tittel
+      opts:
+        is: "="
+        is_not: "!="
+context:
+  - label:
+      eng: 1 sentence
+      nob: 1 setning
+    value: 1 sentence
+within:
+  - label:
+      eng: sentence
+      nob: setning
+    value: sentence

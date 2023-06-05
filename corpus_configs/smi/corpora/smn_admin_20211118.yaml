@@ -1,0 +1,29 @@
+id: smn_admin_20211118
+title:
+  eng: Administrative texts
+  nob: Administrative tekster
+description:
+  eng: Administrative texts
+mode:
+  - name: smn
+pos_attributes:
+  - lemma: lemma
+  - pos: pos
+struct_attributes:
+  - text_title:
+      label:
+        eng: Title
+        nob: Tittel
+      opts:
+        is: "="
+        is_not: "!="
+context:
+  - label:
+      eng: 1 sentence
+      nob: 1 setning
+    value: 1 sentence
+within:
+  - label:
+      eng: sentence
+      nob: setning
+    value: sentence
