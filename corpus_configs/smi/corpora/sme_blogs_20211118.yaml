@@ -2,9 +2,13 @@ id: sme_blogs_20211118
 title:
   eng: Blog texts
   nob: Bloggtekster
+  sme: SME
+  fin: FIN
 description:
   eng: A collection of blog texts
   nob: En samling av bloggtekster
+  sme: SME
+  fin: FIN
 mode:
   - name: default
 pos_attributes:
@@ -12,13 +16,7 @@ pos_attributes:
   - pos: pos
   - msd: msd
 struct_attributes:
-  - text_title:
-      label:
-        eng: Title
-        nob: Tittel
-      opts:
-        is: "="
-        is_not: "!="
+  - text_title: text_title
 context:
   - label:
       eng: 1 sentence

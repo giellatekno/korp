@@ -2,8 +2,13 @@ id: smj_bible_20211118
 title:
   eng: Bible texts
   nob: Bibeltekster
+  sme: SME
+  fin: FIN
 description:
   eng: Bible texts
+  nob: NOB
+  sme: SME
+  fin: FIN
 mode:
   - name: smj
 pos_attributes:
@@ -11,20 +16,18 @@ pos_attributes:
   - pos: pos
   - msd: msd
 struct_attributes:
-  - text_title:
-      label:
-        eng: Title
-        nob: Tittel
-      opts:
-        is: "="
-        is_not: "!="
+  - text_title: text_title
 context:
   - label:
       eng: 1 sentence
       nob: 1 setning
+      sme: SME
+      fin: FIN
     value: 1 sentence
 within:
   - label:
       eng: sentence
       nob: setning
+      sme: SME
+      fin: FIN
     value: sentence
