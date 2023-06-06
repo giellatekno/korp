@@ -1,0 +1,5 @@
+[submodule "korp-frontend"]
+	path = korp-frontend
+	url = git@github.com:giellatekno/korp-frontend
+[submodule]
+	korp-frontend = giellatekno
