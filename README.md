@@ -59,6 +59,22 @@ korp-frontend-other - static nginx, exposed at port 1345, run with KORP_BACKEND_
     podman run -d -p 1345:80 -e "KORP_BACKEND_URL=https://gtweb.uit.no/backend/korp-other" --name korp-frontend-other korp-frontend
 ```
 
+### Building and deplying
+
+*These are the steps as of now. They may change. Maybe we'll use dedicated image builders,
+maybe we'll use a self-hosted or some registry, and push and pull images from there instead
+of manually saving, scping and loading. Maybe we'll use compose to orchistrate this. Maybe there
+will be scripts that automate some of this... Possibilities are endless...*
+
+1. Build the images locally, tag them as `korp-frontend` or `korp-backend`.
+2. Save the image to a .tar file locally, e.g.: `podman save -o korp-frontend.tar korp-frontend`
+3. scp this file to the server
+4. [on server] Use podman to load this image, e.g.: `podman load -i korp-fronted.tar`
+    1. NOTE: MAY HAVE TO REMOVE THE OLD ONE FIRST(??)
+5. [on server] Stop and remove the old container: `podman stop korp-frontend-smi; podman rm korp-frontend-smi`
+6. [on server] Create and start the new one, using `podman run` commands above.
+7. [on server] Replace the systemd unit file. It should be named e.g. `/etc/systemd/user/korp-frontend-smi.service`.
+
 
 ### korp-frontend
 
