@@ -62,17 +62,24 @@ korp-frontend-other - static nginx, exposed at port 1345, run with KORP_BACKEND_
 
 ### korp-frontend
 
-Korp-frontend is a *SPA*, built as a completely static web site. The resulting
-built ("*dist*") folder is hosted with nginx. It is statically defined in the
-javascript code where to contact the backend. Therefore, a change has been made,
-so that when the container runs, a shellscript changes the code to set the
-backend url, before nginx is run. Run the container with the environment
-variable `KORP_BACKEND_URL` to set the url the frontend tries to contact.
+`korp-frontend` is a *SPA* (**S**ingle-**P**age **A**pplication), built as a
+completely static web site. The resulting built folder (named "*dist*") is
+hosted with nginx.
+
+#### Backend configuration
+
+Run the container with the environment variable `KORP_BACKEND_URL` to set where
+the frontend tries to reach the backend. (**Note:** This is a change from the
+upstream source repository, as the upstream just has this information statically
+defined at build time).
+
+#### Build options
 
 The `Dockerfile` is split in a builder, and a slimmer image that copies and
 uses only the necessary build artifacts. If desired, it's also possible to
 build the final image by copying the locally built *dist* folder into the
-image.
+image. See the comments in the `Dockerfile` in the repository.
+
 
 ### korp-backend
 
@@ -87,6 +94,14 @@ registry/ folders), in `/corpus` - because the setting is set like that in the d
 
 CWB_REGISTRY - `/corpus/registry`, the CWB registry files (the registry files must have the data paths also correct accordingly)
 CORPUS_CONFIG_DIR - the folder with the yaml files, refers to CWB files found in CWB_REGISTRY
+
+
+### The server
+
+On the server, we set up systemd units that runs each container for us. We first
+create the container, using the `podman run` commands, with a given `--name`,
+so that we can can then use `podman generate systemd NAME > /etc/systemd/user/NAME.service`
+to generate the systemd unit file for that service.
 
 
 ## Updating corpora
