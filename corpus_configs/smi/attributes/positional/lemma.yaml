@@ -2,6 +2,8 @@ order: 1
 label:
   eng: Base form
   nob: Grunnform
+  sme: SME
+  fin: FIN
 extended_template: <input ng-model='input' escaper>
 opts:
   contains: incontains_contains

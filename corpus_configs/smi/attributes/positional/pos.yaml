@@ -1,7 +1,9 @@
 order: 0
 label:
-  eng: part-of-speech
-  nob: ordklasse
+  eng: Part-of-speech
+  nob: Ordklasse
+  sme: SME
+  fin: FIN
 dataset:
   A: A
   N: N
@@ -32,51 +34,106 @@ translation:
   A:
     eng: Adjective
     nob: Adjektiv
+    sme: SME
+    fin: FIN
   N:
     eng: Noun
     nob: Substantiv
+    sme: SME
+    fin: FIN
   V:
     eng: Verb
     nob: Verb
+    sme: SME
+    fin: FIN
   Adv:
     eng: Adverb
     nob: Adverb
+    sme: SME
+    fin: FIN
   Po:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   Pr:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   Pron:
     eng: Pronoun
     nob: Pronomen
+    sme: SME
+    fin: FIN
   Det:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   Num:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   Cmp_SplitR:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   Cmp_Sh:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   CmpNP_First:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   CmpNP_None:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   Cmp_SgNom:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   Pcle:
-    eng: Particle TODO
-    nob: Partikkel TODO
+    eng: Particle
+    nob: Partikkel
+    sme: SME
+    fin: FIN
   PUNCT:
-    eng: Punctuation TODO
-    nob: Punktasjon TODO
+    eng: Punctuation
+    nob: Punktasjon
+    sme: SME
+    fin: FIN
   CC:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   Interj:
     eng: Interjection TODO
     nob: Interjeksjon TODO
+    sme: SME
+    fin: FIN
   CS:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   CLB:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   ___:
-    eng: TODO
+    eng: ENG
+    nob: NOB
+    sme: SME
+    fin: FIN
   
