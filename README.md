@@ -99,17 +99,48 @@ image. See the comments in the `Dockerfile` in the repository.
 
 ### korp-backend
 
+#### Building for deployment
+
+The image is built with the command: `podman build -t korp-backend -f Dockerfile`
+(be sure to be in the `korp-backend` directory).
+
 A builder step installs and builds the requirements, which are then copied over
 to the final image. Python requirements are c modules, which needs headers to be built,
 as well as CWB binaries that are installed.
 
-`podman build -t korp-backend -f Dockerfile`
+#### Running the built image on the server
 
-The backend expects to find the CWB corpus folder (the one containing data/ and
-registry/ folders), in `/corpus` - because the setting is set like that in the default config.
+All required configuration files and paths are mapped into the container at
+runtime, using *bind mounts* (argument `-v OUTSIDE_PATH:INSIDE_PATH` passed to
+`podman run`, where `OUTSIDE_PATH` means a path on the system that runs the
+container, and `INSIDE_PATH` means where this will be visible inside the container).
+These are:
 
-CWB_REGISTRY - `/corpus/registry`, the CWB registry files (the registry files must have the data paths also correct accordingly)
-CORPUS_CONFIG_DIR - the folder with the yaml files, refers to CWB files found in CWB_REGISTRY
+- `-v /home/anders/korp/config.py:/korp/korp-backend/instance/config.py`.
+  This is the "root" configuration file for the backend. It defines where the
+  other paths are. (**Note**: local path will change!)
+- `-v /corpora/gt_cwb:/corpora/gt_cwb`. This entire folder is mapped in to the
+  same path in the container. It's where the CWB files are. We map it to this
+  specific path, because that's where the `config.py` tells Korp to look.
+- `-v /home/anders/korp/corpus_configs/INSTANCE:/opt/korp-backend/corpus_config`
+  (replace `INSTANCE` with `smi`, `nsu` or `other`). This is where Korp reads
+  about the corpuses, and how to present them, what options are set, etc.
+  We run three instances of Korp, and each gets their own `corpus_config`.
+  We map it into `/opt/korp-backend/corpus_config` inside the container, because
+  our `config.py` file (mapped earlier) defines that this is where to look.
+
+In addition to the *bind mounts* for configuration, we have to set the port
+binding, using `-p OUTSIDE_PORT:1234`, where we replace `OUTSIDE_PORT` with
+`1341` for `smi`, `1343` for `nsu` and `1345` for `other`.
+
+Finally, there are some flags we must give for the container to function
+properly, namely `--privileged` and `--security-opt label=disable`.
+
+The full command is therefore:
+
+```bash
+podman run --privileged -d -p OUTSIDE_PORT:1234 -v /corpora/gt_cwb:/corpora/gt_cwb -v /home/anders/korp/corpus_configs/INSTANCE:/opt/korp-backend/corpus_config -v /home/anders/korp/config.py:/korp/korp-backend/instance/config.py --security-opt label=disable --name korp-backend-INSTANCE korp-backend
+```
 
 
 ### The server
@@ -143,3 +174,37 @@ There is no system for this. Anything that is in the corpus_config must be
 present in the CWB files. CWB files that are not referenced in the corpus_config
 are ignored.
 
+
+## Other
+
+### Difficulty in running locally for testing and development
+
+The frontend is simple, and should just be cloning, `yarn` to install dependencies,
+and a `yarn dev` to start the development server. The problem is that it needs
+a backend, otherwise it will just show an error screen.
+
+The backend is a bit more work. It needs a locally setup `corpus_config`, `CWB`
+tools installed, as well as the `config.py` itself. It's possible to just copy
+over some of the corpora that one wants to test against, but it's a little
+bit of work.
+
+Another issue is testing something against the full dataset. The entire dataset
+of just the CWB files themselves are 5.9 GB.
+
+
+
+## Database
+
+We need it up and running. Probably just a mariadb container, running with
+a bind mount to a database folder on the host.
+
+This must be reachable from the backend. We could use a podman network, or just expose a port
+locally and connect to that through the host.
+
+We need to create the tables, the schema for them are in the documentation, so
+that's fine. However, grepping through the source reveals 0 "INSERT" statements,
+meaning we must fill the database ourselves. How do we do that?
+-- I assume it's a one-time thing, but we still have to do it.
+
+Later problems: How do we make sure that there aren't problems if we remove,
+add, or rename (update) some corpora?
