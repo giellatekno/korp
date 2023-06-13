@@ -1,0 +1,33 @@
+id: fao_facta_20230517
+title:
+  eng: Non-fiction texts
+  nob: NOB
+  sme: SME
+  fin: FIN
+description:
+  eng: A collection of non-fiction texts
+  nob: NOB
+  sme: SME
+  fin: FIN
+mode:
+  - name: fao
+pos_attributes:
+  - lemma: lemma
+  - pos: pos
+  - msd: msd
+struct_attributes:
+  - text_title: text_title
+context:
+  - label:
+      eng: 1 sentence
+      nob: 1 setning
+      sme: SME
+      fin: FIN
+    value: 1 sentence
+within:
+  - label:
+      eng: sentence
+      nob: setning
+      sme: SME
+      fin: FIN
+    value: sentence
