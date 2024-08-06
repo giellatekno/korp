@@ -3,3 +3,6 @@
 	url = git@github.com:giellatekno/korp-frontend
 [submodule]
 	korp-frontend = giellatekno
+[submodule "korp-backend"]
+	path = korp-backend
+	url = git@github.com:giellatekno/korp-backend.git
