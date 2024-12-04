@@ -42,7 +42,8 @@ RUN mkdir -p /korp/korp-frontend/app/modes
 # found.
 RUN touch /korp/korp-frontend/app/modes/default_mode.js
 
-COPY ./korp-frontend/app/translations/* /korp/korp-frontend/app/translations
+# Extra translation files for the frontend
+COPY ./gtweb2_korp_settings/translations/* /korp/korp-frontend/app/translations
 
 RUN set -eux && \
     cd /korp/korp-frontend && \
