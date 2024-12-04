@@ -1,16 +1,16 @@
-id: sme_admin_20211118
+id: sma_admin_20211118
 title:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME
-  fin: FIN
+  sme: SME Administrative texts
+  fin: FIN Administrative texts
 description:
-  eng: Administrative texts, mostly from the <a href="http://www.samediggi.no", target="_blank">Saami Parliament</a> in Norway
-  nob: NOB
-  sme: SME
-  fin: FIN
+  eng: Administrative texts
+  nob: Administrative tekster
+  sme: SME Administrative texts
+  FIN: FIN Administrative texts
 mode:
-  - name: default
+  - name: sma
 pos_attributes:
   - lemma: lemma
   - pos: pos
@@ -21,14 +21,13 @@ context:
   - label:
       eng: 1 sentence
       nob: 1 setning
-      sme: SME
-      fin: FIN
+      sme: SME 1 sentence
+      fin: FIN 1 sentence
     value: 1 sentence
 within:
   - label:
       eng: sentence
       nob: setning
-      sme: SME
-      fin: FIN
+      sme: SME sentence
+      fin: FIN sentence
     value: sentence
-

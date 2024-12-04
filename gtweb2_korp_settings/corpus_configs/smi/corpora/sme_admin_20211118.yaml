@@ -1,0 +1,55 @@
+id: sme_admin_20211118
+title:
+  eng: Administrative texts
+  nob: Administrative tekster
+  sme: SME
+  fin: FIN
+description:
+  eng: Administrative texts, mostly from the <a href="http://www.samediggi.no", target="_blank">Saami Parliament</a> in Norway
+  nob: NOB
+  sme: SME
+  fin: FIN
+mode:
+  - name: default
+pos_attributes:
+  - lemma: lemma
+  - pos: pos
+  - msd: msd
+  - word: word
+  - ref: ref
+  - deprel: deprel
+  - dephead: dephead
+struct_attributes:
+  - text_title: text_title
+  - text_date: text_date
+  - text_id: text_id
+  - text_title: text_title
+  - text_lang: text_lang
+  - text_orig_lang: text_orig_lang
+  - text_gt_domain: text_gt_domain
+  - text_first_name: text_first_name
+  - text_last_name: text_last_name
+  - text_nationality: text_nationality
+  - text_date: text_date
+  - text_datefrom: text_datefrom
+  - text_dateto: text_dateto
+  - text_timefrom: text_timefrom
+  - text_timeto: text_timeto
+  - text_sentence_count: text_sentence_count
+  - text_token_count: text_token_count
+
+context:
+  - label:
+      eng: 1 sentence
+      nob: 1 setning
+      sme: SME
+      fin: FIN
+    value: 1 sentence
+within:
+  - label:
+      eng: sentence
+      nob: setning
+      sme: SME
+      fin: FIN
+    value: sentence
+
