@@ -1,0 +1,24 @@
+korp_backend_url: https://gtweb-02.uit.no/korp-backend-nsu
+languages:
+  - value: sme
+    label: Davvisámi
+  - value: nob
+    label: Norsk
+  - value: fin
+    label: Soumi
+  - value: eng
+    label: English
+has_timespan: false
+
+# anders: autocomplete is currently hard-coded to really only work for
+# språkbanken's systems
+autocomplete: false
+
+default_options:
+  is: =
+  is_not: '!='
+  starts_with: ^=
+  contains: _=
+  ends_with: '&='
+  matches: '*='
+  matches_not: '!*='
