@@ -1,0 +1,9 @@
+order: 1
+label:
+  nob: "Enaresamiske tekster"
+  eng: "Enaresami texts"
+  sme: "Anársámi teavsttat"
+  fin: "Inarinsaamen tekstit"
+primaryColor: '#EDFCD5'
+primaryLight: '#f7fceb'
+wordpicture: false

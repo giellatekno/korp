@@ -7,14 +7,22 @@ tasks.py <front|back> <smi|nsu|other> <build|push|runlocal|bap>
 
 import argparse
 import os
-import sys
-#sys.path.insert(0, "/home/anders/temp/python-playground/decorator_argparse/")
-#from decorator_argparse import Argparser, Param, handler, subcommands  # noqa: E402
-
+from dataclasses import dataclass
 
 ACR = "gtlabcontainerregistry.azurecr.io"
 INSTANCES = ["smi", "nsu", "other"]
+LANGS = [
+    "sma", "sme", "smj", "smn", "sms", "koi",
+    "kpv", "mdf", "mhr", "mrj", "myv", "udm",
+    "fao", "fit", "fkv", "olo", "vep", "vro",
+]
 CMDS = ["build", "push", "run", "bap"]
+def port_of(frontorback, lang):
+    port = 1390
+    port += len(LANGS) if frontorback == "front" else 0
+    port += LANGS.index(lang)
+    return port
+
 
 DOCKERFILE_FRONTEND = """
 FROM docker.io/library/debian:bookworm AS builder
@@ -126,81 +134,87 @@ def run_cmd(cmd, *args, **kwargs):
     if not isinstance(cmd, list):
         raise TypeError("argument 'cmd' must be a list or a string")
 
+    print(cmd)
     try:
         run(cmd, **kwargs)
     except KeyboardInterrupt:
         pass
 
 
-def build(frontorback, instance, backend):
-    if frontorback == "front":
-        input = DOCKERFILE_FRONTEND
-        args = (
-            f"-t korp-frontend-{instance} "
-            f"--build-arg=instance={instance} "
-        )
-        if backend is not None:
-            args += f"--build-arg=backend={backend} "
-    elif frontorback == "back":
-        input = DOCKERFILE_BACKEND
-        args = "-t korp-backend"
+def build_front(lang, backend_url):
+    assert isinstance(lang, str)
+    assert isinstance(backend_url, str)
+    cmd = (
+        "podman build "
+        f"-t korp-frontend-{lang} "
+        f"--build-arg=instance={lang} "
+        f"--build-arg=backend={backend_url} "
+        f"-f - {os.getcwd()}"
+    )
+    run_cmd(cmd, input=DOCKERFILE_FRONTEND, encoding="utf-8")
 
+
+def build_back():
+    cmd = f"podman build -t korp-backend -f - {os.getcwd()}"
+    run_cmd(cmd, input=DOCKERFILE_BACKEND, encoding="utf-8")
+
+
+def run_front(lang):
+    run_cmd(
+        "podman run --rm "
+        f"--name korp-frontend-{lang} "
+        f"-p {port_of('front', lang)}:80 "
+        f"korp-frontend-{lang}"
+    )
+
+
+def run_back(lang, cwbfiles):
+    assert lang in LANGS
+    assert isinstance(cwbfiles, str)
+    print(lang, cwbfiles)
     cwd = os.getcwd()
-    cmd = f"podman build {args} -f - {cwd}"
-    run_cmd(cmd, input=input, encoding="utf-8")
+    args = (
+        f"--name korp-backend-{lang} "
+        "--rm "
+        "--replace "
+        f"-p {port_of('back', lang)}:1234 "
+        f"-v {cwd}/config.py:/korp/korp-backend/instance/config.py "
+        f"-v {cwd}/gtweb2_korp_settings/corpus_configs/{lang}:/corpora/gt_cwb/corpus_config "
+        f"-v {cwbfiles}:/corpora"
+    )
+    run_cmd(f"podman run {args} korp-backend")
 
 
-def run(frontorback, instance, cwbfiles):
-    cwd = os.getcwd()
-    if frontorback == "back":
-        if cwbfiles is None:
-            sys.exit("Need to specify --cwbfiles (where the built cwb files are located)")
-        image = "korp-backend"
-        args = (
-            f"--name korp-backend-{instance} "
-            "--rm "
-            "--replace "
-            "-p 1390:1234 "
-            f"-v {cwd}/config.py:/korp/korp-backend/instance/config.py "
-            f"-v {cwd}/gtweb2_korp_settings/corpus_configs/{instance}:/corpora/gt_cwb/corpus_config "
-            f"-v {cwbfiles}:/corpora"
-        )
-    elif frontorback == "front":
-        image = f"korp-frontend-{instance}"
-        args = (
-            "--name korp-frontend-smi "
-            "--rm "
-            "--replace "
-            "-p 1395:80 "
-        )
-
-    run_cmd(f"podman run {args} {image}")
+def push_front(lang):
+    run_cmd(f"podman tag korp-frontend-{lang} {ACR}/korp-frontend-{lang}")
+    run_cmd(f"podman push {ACR}/korp-frontend-{lang}")
 
 
-def push_front(instance):
-    print("push frontend", instance)
-    return
-    if instance is None:
-        instance = INSTANCES
-    for inst in instance:
-        run(f"podman tag korp-frontend-{inst} {ACR}/korp-frontend-{inst}")
-        run(f"podman push {ACR}/korp-frontend-{inst}")
-
-
-def push_back(instance):
-    print("push backend", instance)
-    return
-    run(f"podman tag korp-backend {ACR}/korp-backend")
-    run(f"podman push {ACR}/korp-backend")
+def push_back():
+    run_cmd(f"podman tag korp-backend {ACR}/korp-backend")
+    run_cmd(f"podman push {ACR}/korp-backend")
 
 
 def bap_front(instance):
-    print("bap frontend")
+    tag = f"korp-frontend-{instance}"
+    run_cmd(f"podman tag {tag} {ACR}/{tag}")
+    run_cmd(f"podman push {ACR}/{tag}")
 
 
-def bap_back(instance):
-    build("back", instance)
-    push_back(instance)
+def bap_back():
+    build_back()
+    push_back()
+
+
+@dataclass
+class Args:
+    cmd: str  # Literal["build", "run"]
+    frontorback: str  # Literal["front", "back"]
+    lang: str
+    cwbfiles: str
+    backend: str
+    local: str
+    prod: str
 
 
 def parse_args():
@@ -208,37 +222,64 @@ def parse_args():
     parser.add_argument("args", nargs="*")
     parser.add_argument("--cwbfiles")
     parser.add_argument("--backend")
+    parser.add_argument("--local", action="store_true")
+    parser.add_argument("--prod", action="store_true")
 
     args = parser.parse_args()
 
-    instance = None
-    frontorback = None
     cmd = None
+    frontorback = None
+    lang = None
 
     for arg in args.args:
-        if arg in INSTANCES:
-            instance = arg
+        if arg in LANGS:
+            lang = arg
         elif arg in ["front", "back"]:
             frontorback = arg
         elif arg in CMDS:
             cmd = arg
 
-    if instance is None:
-        sys.exit(f"need an instance, one of {', '.join(INSTANCES)}")
-    if frontorback is None:
-        sys.exit("need to know 'front' or 'back'")
-    if cmd is None:
-        sys.exit(f"need a cmd, one of {', '.join(CMDS)}")
-
-    return instance, frontorback, cmd, args.cwbfiles, args.backend
+    return Args(
+        cmd=cmd,
+        frontorback=frontorback,
+        lang=lang,
+        cwbfiles=args.cwbfiles,
+        backend=args.backend,
+        local=args.local,
+        prod=args.prod,
+    )
 
 
 if __name__ == "__main__":
-    instance, frontorback, cmd, cwbfiles, backend = parse_args()
-
-    if cmd == "build":
-        build(frontorback, instance, backend)
-    elif cmd == "run":
-        run(frontorback, instance, cwbfiles)
-    else:
-        print(f"TODO run command: {cmd}")
+    match parse_args():
+        case Args("build", "front", lang=None):
+            print("error: build front: missing 3rd argument: lang")
+            print("  give one of:", ", ".join(LANGS))
+        case Args("build", "front", lang, backend=None, local=False, prod=False):
+            print(
+                "error: build front: must know which backend the built \n"
+                "frontend will use at image build time. Give \n"
+                f"  --prod  to use https://gtweb-02.uit.no/korp-backend-{lang}\n"
+                f"  --local to use http://localhost:{port_of('back', lang)}\n"
+                "  or set a custom with --backend=BACKEND"
+            )
+        case Args("build", "front", lang, backend=None, local=True, prod=False):
+            build_front(lang, f"http://localhost:{port_of('back', lang)}")
+        case Args("build", "front", lang, backend=None, local=False, prod=True):
+            build_front(lang, f"https://gtweb-02.uit.no/korp-backend-{lang}")
+        case Args("build", "back") as args:
+            build_back()
+        case Args("run", "front", lang=None) as args:
+            print("error: run front: missing 3rd argument: lang")
+            print(f"  give one of: {', '.join(LANGS)}")
+        case Args("run", "front", lang) as args:
+            run_front(lang)
+        case Args("run", "back", cwbfiles=None) as args:
+            print("Need to specify --cwbfiles <path to built cwb files>")
+        case Args("run", "back", lang, cwbfiles) as args:
+            run_back(lang, cwbfiles)
+        case Args("run" | "build", frontorback) as args:
+            print("error: front or back?")
+        case Args(cmd):
+            print("error: no cmd found in arguments")
+            print(f"give one of: {', '.join(CMDS)}")

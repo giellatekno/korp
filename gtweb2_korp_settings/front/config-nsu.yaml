@@ -5,7 +5,7 @@ languages:
   - value: nob
     label: Norsk
   - value: fin
-    label: Soumi
+    label: Suomi
   - value: eng
     label: English
 has_timespan: false
