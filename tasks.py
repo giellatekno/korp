@@ -17,6 +17,8 @@ LANGS = [
     "fao", "fit", "fkv", "olo", "vep", "vro",
 ]
 CMDS = ["build", "push", "run", "bap"]
+
+
 def port_of(frontorback, lang):
     port = 1390
     port += len(LANGS) if frontorback == "front" else 0
@@ -178,7 +180,7 @@ def run_back(lang, cwbfiles):
         "--rm "
         "--replace "
         f"-p {port_of('back', lang)}:1234 "
-        f"-v {cwd}/config.py:/korp/korp-backend/instance/config.py "
+        f"-v {cwd}/gtweb2_korp_settings/config.py:/korp/korp-backend/instance/config.py "
         f"-v {cwd}/gtweb2_korp_settings/corpus_configs/{lang}:/corpora/gt_cwb/corpus_config "
         f"-v {cwbfiles}:/corpora"
     )
@@ -259,14 +261,14 @@ if __name__ == "__main__":
             print(
                 "error: build front: must know which backend the built \n"
                 "frontend will use at image build time. Give \n"
-                f"  --prod  to use https://gtweb-02.uit.no/korp-backend-{lang}\n"
+                f"  --prod  to use https://gtweb-02.uit.no/korp/backend-{lang}\n"
                 f"  --local to use http://localhost:{port_of('back', lang)}\n"
                 "  or set a custom with --backend=BACKEND"
             )
         case Args("build", "front", lang, backend=None, local=True, prod=False):
             build_front(lang, f"http://localhost:{port_of('back', lang)}")
         case Args("build", "front", lang, backend=None, local=False, prod=True):
-            build_front(lang, f"https://gtweb-02.uit.no/korp-backend-{lang}")
+            build_front(lang, f"https://gtweb-02.uit.no/korp/backend-{lang}")
         case Args("build", "back") as args:
             build_back()
         case Args("run", "front", lang=None) as args:
@@ -278,6 +280,10 @@ if __name__ == "__main__":
             print("Need to specify --cwbfiles <path to built cwb files>")
         case Args("run", "back", lang, cwbfiles) as args:
             run_back(lang, cwbfiles)
+        case Args("push", "back"):
+            push_back()
+        case Args("push", "front", lang):
+            push_front(lang)
         case Args("run" | "build", frontorback) as args:
             print("error: front or back?")
         case Args(cmd):
