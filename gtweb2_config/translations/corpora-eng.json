@@ -270,7 +270,7 @@
     "sense1" : "sense 1",
     "sense2" : "sense 2",
 
-    "mx" : "flerordsprefix",
+    "mx" : "multi-wordprefix",
     "sx" : "prefix",
     "page_num" : "page number",
     "year_to"  : "date (to)",
