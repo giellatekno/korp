@@ -16,7 +16,7 @@ LANGS = [
     "kpv", "mdf", "mhr", "mrj", "myv", "udm",
     "fao", "fit", "fkv", "olo", "vep", "vro",
 ]
-CMDS = ["build", "push", "run", "bap"]
+CMDS = ["build", "push", "sync-settings", "run", "bap"]
 
 
 def port_of(frontorback, lang):
@@ -208,6 +208,16 @@ def bap_back():
     push_back()
 
 
+def sync_settings():
+    run_cmd(
+        "rsync "
+        "-rv "  # r = recursively, v = verbose
+        "--stats "
+        "gtweb2_config/ "  # copy everything in the directory
+        "gtweb-02.uit.no:/home/services/korp/config/"  # to this directory
+    )
+
+
 @dataclass
 class Args:
     cmd: str  # Literal["build", "run"]
@@ -286,6 +296,8 @@ if __name__ == "__main__":
             push_front(lang)
         case Args("run" | "build", frontorback) as args:
             print("error: front or back?")
+        case Args("sync-settings"):
+            sync_settings()
         case Args(cmd):
             print("error: no cmd found in arguments")
             print(f"give one of: {', '.join(CMDS)}")

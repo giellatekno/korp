@@ -14,7 +14,7 @@ CQP_EXECUTABLE = "/usr/bin/cqp"
 CWB_SCAN_EXECUTABLE = "/usr/bin/cwb-scan-corpus"
 
 # The absolute path to the CWB registry files
-CWB_REGISTRY = "/corpora/gt_cwb/registry"
+CWB_REGISTRY = "/corpora/registry"
 
 # The default encoding for the cqp binary
 CQP_ENCODING = "UTF-8"
@@ -58,7 +58,7 @@ CACHE_MAX_STATS = 50
 CACHE_MAX_QUERY_DATA = 0
 
 # Corpus configuration directory
-CORPUS_CONFIG_DIR = "/corpora/gt_cwb/corpus_config"
+CORPUS_CONFIG_DIR = "/corpora/corpus_config"
 
 # Set to True to enable "lab mode", potentially enabling experimental features and access to lab-only corpora
 LAB_MODE = False
