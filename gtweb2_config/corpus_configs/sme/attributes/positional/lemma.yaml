@@ -6,12 +6,19 @@ label:
   sme: Vuođđohápmi
   fin: Perusmuoto
 extended_template: <input ng-model='input' escaper>
-opts:
-  contains: incontains_contains
-  ends_with: ends_with_contains
-  is: '='
+options:
+  is: =
   is_not: '!='
-  matches: regexp_contains
-  matches_not: not_regexp_contains
-  starts_with: starts_with_contains
+  starts_with: ^=
+  contains: _=
+  ends_with: '&='
+  matches: '*='
+  matches_not: '!*='
 type: set
+#  is: contains
+#  is_not: not contains
+#  contains: '*='
+#  ends_with: '&=' #ends_with_contains
+#  matches: '*=' #regexp_contains
+#  matches_not: '!*=' #not_regexp_contains
+#  starts_with: '^=' #starts_with_contains

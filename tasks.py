@@ -180,8 +180,8 @@ def run_back(lang, cwbfiles):
         "--rm "
         "--replace "
         f"-p {port_of('back', lang)}:1234 "
-        f"-v {cwd}/gtweb2_korp_settings/config.py:/korp/korp-backend/instance/config.py "
-        f"-v {cwd}/gtweb2_korp_settings/corpus_configs/{lang}:/corpora/gt_cwb/corpus_config "
+        f"-v {cwd}/gtweb2_config/config.py:/korp/korp-backend/instance/config.py "
+        f"-v {cwd}/gtweb2_config/corpus_configs/{lang}:/corpora/corpus_config "
         f"-v {cwbfiles}:/corpora"
     )
     run_cmd(f"podman run {args} korp-backend")
