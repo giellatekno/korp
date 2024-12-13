@@ -14,7 +14,7 @@ CQP_EXECUTABLE = "/usr/bin/cqp"
 CWB_SCAN_EXECUTABLE = "/usr/bin/cwb-scan-corpus"
 
 # The absolute path to the CWB registry files
-CWB_REGISTRY = "/corpora/registry"
+CWB_REGISTRY = "/corpora/gt_cwb/registry"
 
 # The default encoding for the cqp binary
 CQP_ENCODING = "UTF-8"

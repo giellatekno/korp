@@ -42,7 +42,7 @@ WORKDIR /korp
 RUN set -eux && \
     git clone --branch master --depth 1 https://github.com/spraakbanken/korp-frontend.git /korp/korp-frontend
 
-COPY ./gtweb2_korp_settings/front/config-${instance}.yaml /korp/korp-frontend/app/config.yml
+COPY ./gtweb2_config/front/config-${instance}.yaml /korp/korp-frontend/app/config.yml
 RUN sed --in-place "s,^korp_backend_url:.*$,korp_backend_url: ${backend}," /korp/korp-frontend/app/config.yml
 RUN mkdir -p /korp/korp-frontend/app/modes
 
@@ -53,7 +53,7 @@ RUN mkdir -p /korp/korp-frontend/app/modes
 RUN touch /korp/korp-frontend/app/modes/default_mode.js
 
 # Extra translation files for the frontend
-COPY ./gtweb2_korp_settings/translations/* /korp/korp-frontend/app/translations
+COPY ./gtweb2_config/translations/* /korp/korp-frontend/app/translations
 
 RUN set -eux && \
     cd /korp/korp-frontend && \
@@ -182,7 +182,7 @@ def run_back(lang, cwbfiles):
         f"-p {port_of('back', lang)}:1234 "
         f"-v {cwd}/gtweb2_config/config.py:/korp/korp-backend/instance/config.py "
         f"-v {cwd}/gtweb2_config/corpus_configs/{lang}:/corpora/corpus_config "
-        f"-v {cwbfiles}:/corpora"
+        f"-v {cwbfiles}:/corpora/gt_cwb"
     )
     run_cmd(f"podman run {args} korp-backend")
 
