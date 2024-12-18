@@ -10,11 +10,12 @@ description:
   sme: SME Administrative texts
   FIN: FIN Administrative texts
 mode:
-  - name: sma
+  - name: default
 pos_attributes:
-  - lemma: lemma
   - pos: pos
+  - lemma: lemma
   - msd: msd
+  - word: word
 struct_attributes:
   - text_title: text_title
 context:
