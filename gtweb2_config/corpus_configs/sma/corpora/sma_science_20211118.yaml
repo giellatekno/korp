@@ -2,15 +2,15 @@ id: sma_science_20211118
 title:
   eng: Science texts
   nob: Vitenskapelige tekster
-  sme: SME
-  fin: FIN
+  sme: SME Science texts
+  fin: FIN Science texts
 description:
-  eng: Science texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  eng: A collection of science texts such as masters theses, phd theses, and articles
+  nob: NOB A collection of science texts such as masters theses, phd theses, and articles
+  sme: SME A collection of science texts such as masters theses, phd theses, and articles
+  fin: FIN A collection of science texts such as masters theses, phd theses, and articles
 mode:
-  - name: sma
+  - name: default
 pos_attributes:
   - lemma: lemma
   - pos: pos

@@ -1,19 +1,19 @@
 id: sma_ficti_20211118
 title:
   eng: Fiction texts
-  nob: Fiktive tekster
-  sme: SME
-  fin: FIN
+  nob: NOB Fiction texts
+  sme: SME Fiction texts
+  fin: FIN Fiction texts
 description:
-  eng: Fiction texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  eng: A collection of fiction texts
+  nob: NOB A collection of fiction texts
+  sme: SME A collection of fiction texts
+  fin: FIN A collection of fiction texts
 mode:
-  - name: sma
+  - name: default
 pos_attributes:
-  - lemma: lemma
   - pos: pos
+  - lemma: lemma
   - msd: msd
 struct_attributes:
   - text_title: text_title
