@@ -2,8 +2,8 @@ id: sme_admin_20211118
 title:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME
-  fin: FIN
+  sme: SME Administrative texts
+  fin: FIN Administrative texts
 description:
   eng: Administrative texts, mostly from the <a href="http://www.samediggi.no", target="_blank">Saami Parliament</a> in Norway
   nob: NOB Administrative texts, mostly from the <a href="http://www.samediggi.no", target="_blank">Saami Parliament</a> in Norway
@@ -37,7 +37,6 @@ struct_attributes:
   - text_timeto: text_timeto
   - text_sentence_count: text_sentence_count
   - text_token_count: text_token_count
-
 context:
   - label:
       eng: 1 sentence
