@@ -30,7 +30,6 @@ DOCKERFILE_FRONTEND = """
 FROM docker.io/library/debian:bookworm AS builder
 
 ARG instance
-#ARG backend=https://gtweb.uit.no/korp/backend-${instance}
 
 RUN <<EOF
     set -eux
@@ -43,7 +42,6 @@ EOF
 WORKDIR /korp
 
 COPY ./gtweb2_config/front/config-${instance}.yaml /korp/korp-frontend/app/config.yml
-#RUN sed --in-place "s,^korp_backend_url:.*$,korp_backend_url: ${backend}," /korp/korp-frontend/app/config.yml
 RUN mkdir -p /korp/korp-frontend/app/modes
 
 # yarn build failed on this file not being present, with "invalid syntax",
@@ -68,7 +66,6 @@ FROM docker.io/library/nginx
 #COPY ./korp-nginx-frontend.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /korp/korp-frontend/dist /usr/share/nginx/html/
 
-RUN ls /usr/share/nginx/html/
 RUN grep -l "korp_backend_url:[ ]\\?\\"[^\\"]\\+\\"" /usr/share/nginx/html/*.js > /js_file
 
 RUN <<EOF
@@ -85,7 +82,6 @@ RUN echo 'fi' >>/entry.sh
 RUN echo 'sed -i "s,korp_backend_url:[ ]\\?\\"[^\\"]\\+\\",korp_backend_url: \\"${BACKEND}\\","' "$(cat /js_file)" >>/entry.sh
 RUN echo 'exec "$@"' >>/entry.sh
 RUN chmod +x /entry.sh
-
 
 ENTRYPOINT [ "/entry.sh" ]
 CMD ["nginx", "-g", "daemon off;"]
@@ -215,10 +211,9 @@ def run_back(lang, cwbfiles):
     run_cmd(f"podman run {args} korp-backend")
 
 
-def push_front(lang, inst):
-    tag = f"korp-frontend-{lang}-{inst}"
-    run_cmd(f"podman tag {tag} {ACR}/{tag}")
-    run_cmd(f"podman push {ACR}/{tag}")
+def push_front(lang):
+    run_cmd(f"podman tag korp-frontend-{lang} {ACR}/korp-frontend-{lang}")
+    run_cmd(f"podman push {ACR}/korp-frontend-{lang}")
 
 
 def push_back():
@@ -226,10 +221,9 @@ def push_back():
     run_cmd(f"podman push {ACR}/korp-backend")
 
 
-def bap_front(lang, inst):
-    where = "WHERE"
-    build_front(lang, where)
-    push_front(lang, inst)
+def bap_front(lang):
+    build_front(lang)
+    push_front(lang)
 
 
 def bap_back():
@@ -297,7 +291,7 @@ if __name__ == "__main__":
         case Args("run", "front", lang=None) as args:
             print("error: run front: missing 3rd argument: lang")
             print(f"  give one of: {', '.join(LANGS)}")
-        case Args("run", "front", lang, backend) as args:
+        case Args("run", "front", lang, _cwbfiles, backend) as args:
             run_front(lang, backend)
         case Args("run", "back", cwbfiles=None) as args:
             print("Need to specify --cwbfiles <path to built cwb files>")
@@ -309,7 +303,6 @@ if __name__ == "__main__":
             print("error: push front: missing argument: lang")
             print(f"  give one of: {', '.join(LANGS)}")
         case Args("push", "front", lang):
-            print("error: push front: need to know ")
             push_front(lang)
         case Args("bap", "front", lang=None):
             print("error: bap front: missing argument: lang")

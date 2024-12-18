@@ -1,4 +1,4 @@
-korp_backend_url: https://gtweb-02.uit.no/korp-backend
+korp_backend_url: https://DELIBERATELY.INVALID
 languages:
   - value: sme
     label: Davvisámi
@@ -15,10 +15,10 @@ has_timespan: false
 autocomplete: false
 
 default_options:
-  is: =
+  is: '='
   is_not: '!='
-  starts_with: ^=
-  contains: '*=' #_=
+  starts_with: '^='
+  contains: '*='
   ends_with: '&='
   matches: '*='
   matches_not: '!*='
