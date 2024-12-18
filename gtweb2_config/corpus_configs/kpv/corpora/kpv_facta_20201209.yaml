@@ -1,0 +1,33 @@
+id: kpv_facta_20201209
+title:
+  eng: Non-fiction texts
+  nob: NOB Non-fiction texts
+  sme: SME Non-fiction texts
+  fin: FIN Non-fiction texts
+description:
+  eng: A collection of non-fiction texts
+  nob: NOB A collection of non-fiction texts
+  sme: SME A collection of non-fiction texts
+  fin: FIN A collection of non-fiction texts
+mode:
+  - name: default
+pos_attributes:
+  - pos: pos
+  - lemma: lemma
+  - msd: msd
+struct_attributes:
+  - text_title: text_title
+context:
+  - label:
+      eng: 1 sentence
+      nob: 1 setning
+      sme: 1 cealkka
+      fin: 1 lause
+    value: 1 sentence
+within:
+  - label:
+      eng: sentence
+      nob: setning
+      sme: cealkka
+      fin: lause
+    value: sentence
