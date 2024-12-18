@@ -1,0 +1,33 @@
+id: kpv_laws_20201209
+title:
+  eng: Law texts
+  nob: Juridiske tekster
+  sme: SME Law texts
+  fin: FIN Law texts
+description:
+  eng: A collection of legislative texts
+  nob: NOB A collection of legislative texts
+  sme: SME A collection of legislative texts
+  fin: FIN A collection of legislative texts
+mode:
+  - name: default
+pos_attributes:
+  - lemma: lemma
+  - pos: pos
+  - msd: msd
+struct_attributes:
+  - text_title: text_title
+context:
+  - label:
+      eng: 1 sentence
+      nob: 1 setning
+      sme: 1 cealkka
+      fin: 1 lause
+    value: 1 sentence
+within:
+  - label:
+      eng: sentence
+      nob: setning
+      sme: cealkka
+      fin: lause
+    value: sentence
