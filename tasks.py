@@ -264,10 +264,16 @@ def parse_args():
 
     for arg in args.args:
         if arg in LANGS:
+            if lang is not None:
+                parser.error("multiple languages given, only give one")
             lang = arg
         elif arg in ["front", "back"]:
+            if frontorback is not None:
+                parser.error("can't give both front and back, choose one")
             frontorback = arg
         elif arg in CMDS:
+            if cmd is not None:
+                parser.error("can only give one command")
             cmd = arg
 
     return Args(
