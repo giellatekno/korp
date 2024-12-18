@@ -10,7 +10,7 @@ description:
   sme: SME Facta texts
   fin: FIN Facta texts
 mode:
-  - name: smj
+  - name: default
 pos_attributes:
   - lemma: lemma
   - pos: pos
