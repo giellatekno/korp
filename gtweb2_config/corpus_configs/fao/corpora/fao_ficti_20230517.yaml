@@ -1,33 +1,49 @@
 id: fao_ficti_20230517
 title:
   eng: Fiction texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: NOB Fiction texts
+  sme: SME Fiction texts
+  fin: FIN Fiction texts
 description:
   eng: A collection of fiction texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: NOB A collection of fiction texts
+  sme: SME A collection of fiction texts
+  fin: FIN A collection of fiction texts
 mode:
-  - name: fao
+  - name: default
 pos_attributes:
   - lemma: lemma
   - pos: pos
   - msd: msd
 struct_attributes:
   - text_title: text_title
+  - text_date: text_date
+  - text_id: text_id
+  - text_title: text_title
+  - text_lang: text_lang
+  - text_orig_lang: text_orig_lang
+  - text_gt_domain: text_gt_domain
+  - text_first_name: text_first_name
+  - text_last_name: text_last_name
+  - text_nationality: text_nationality
+  - text_date: text_date
+  - text_datefrom: text_datefrom
+  - text_dateto: text_dateto
+  - text_timefrom: text_timefrom
+  - text_timeto: text_timeto
+  - text_sentence_count: text_sentence_count
+  - text_token_count: text_token_count
 context:
   - label:
       eng: 1 sentence
       nob: 1 setning
-      sme: SME
-      fin: FIN
+      sme: 1 cealkka
+      fin: 1 lause
     value: 1 sentence
 within:
   - label:
       eng: sentence
       nob: setning
-      sme: SME
-      fin: FIN
+      sme: cealkka
+      fin: lause
     value: sentence
