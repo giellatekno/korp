@@ -30,6 +30,10 @@ github.com/giellatekno/korp  (this repository)
                            default korp for that language. one for historical
                            corpora, one for parallell, etc. språkbanken
                            uses modes for separating them corpora like that.
+  selector-page/
+    index.html           - simple page with links to the various korp sites
+                           visible at https://gtweb-02.uit.no/korp/
+                           deployed as a static site in /var/www/html
 ```
 
 
