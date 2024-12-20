@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Korp</title>
+        <style>
+            tbody td:nth-of-type(2) {
+                font-family: monospace;
+                text-align: end;
+            }
+        </style>
+        <script>
+            const reversed = fn => (a, b) => -fn(a, b);
+
+            const cmp = (a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
+
+            const thousands_sep = x => x.toLocaleString("en-US", { useGrouping: true });
+            function sort_by_size() {
+                let trs = Array.from(document.querySelectorAll("tbody tr"))
+
+                document.querySelector("tbody").innerHTML = trs
+                    .map(tr => {
+                        let display = tr.children[0].innerHTML;
+                        let size = parseInt(tr.children[1].innerText.replaceAll(",", ""));
+                        return [size, display];
+                    })
+                    .toSorted(reversed(cmp))
+                    .map(([size, html]) => [thousands_sep(size), html])
+                    .map(([size, html]) => `<tr><td>${html}</td><td>${size}</td>`)
+                    .join("\n");
+            }
+        </script>
+    </head>
+    <body style="margin: 0; display: grid; justify-items: center;">
+        <main style="display: flex; flex-direction: column; width: 70%;">
+            <h2>Our Korp instances</h2>
+            <p style="font-size: 18px;">We run one instance of Korp for each language we have a
+                corpora of.</p>
+            <table style="font-size: 18px; width: 400px;">
+                <colgroup>
+                    <col span="1">
+                    <col span="1">
+                </colgroup>
+
+                <thead>
+                    <tr>
+                        <th style="text-align: start;">Language</th>
+                        <th onclick="sort_by_size()" style="cursor: pointer; text-align: start; width: max-content;">Size (in number of <em>tokens</em>)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/sma">
+                                South Sámi
+                            </a>
+                        </td>
+                        <td>2,030,158</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/sme">
+                                North Sámi
+                            </a>
+                        </td>
+                        <td>39,261,373</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/smj">
+                                Lule sami
+                            </a>
+                        </td>
+                        <td>1,809,537</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/smn">
+                                Inari sami
+                            </a>
+                        </td>
+                        <td>1,809,537</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/sms">
+                                Skolt Sámi
+                            </a>
+                        </td>
+                        <td>251,351</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/fao">
+                                Faroese
+                            </a>
+                        </td>
+                        <td>25,451,390</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/fit">
+                                Meänkieli
+                            </a>
+                        </td>
+                        <td>447,462</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/fkv">
+                                Kven
+                            </a>
+                        </td>
+                        <td>498,966</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/koi">
+                                Komi Permyak
+                            </a>
+                        </td>
+                        <td>241,614</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/kpv">
+                                Komi
+                            </a>
+                        </td>
+                        <td>963,802</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/mdf">
+                                Moksha
+                            </a>
+                        </td>
+                        <td>12,792,781</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/mhr">
+                                Eastern Mari
+                            </a>
+                        </td>
+                        <td>57,375,100</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/mrj">
+                                Hill Mari
+                            </a>
+                        </td>
+                        <td>6,252,302</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/myv">
+                                Erzya
+                            </a>
+                        </td>
+                        <td>14,050,585</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/olo">
+                                Livvi-Karelian
+                            </a>
+                        </td>
+                        <td>298,787</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/udm">
+                                Udmurt
+                            </a>
+                        </td>
+                        <td>271,895</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/vep">
+                                Veps
+                            </a>
+                        </td>
+                        <td>1,110,261</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="https://gtweb-02.uit.no/korp/vro">
+                                Võro
+                            </a>
+                        </td>
+                        <td>668,088</td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+        <hr style="margin-top: 2em; width: 100%;">
+        <h3>Giellatekno</h3>
+    </body>
+</html>

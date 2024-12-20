@@ -1,117 +1,100 @@
-# Our setup
+# Our korp setup
 
-This repository contains the configuration files for our setup of Korp, and
-also gathers the upstream repositories as submodules. This readme explains
-our setup.
+This repository contains the the builder and configuration files for
+our instances of Korp. We build one image for the backend, and one for the
+frontend, for each of the 18 languages we have corpora for.
+
+File listing of this repository:
 
 ```
 github.com/giellatekno/korp  (this repository)
-  - readme/documentation
-  - our settings
-    - web-facing nginx reverse proxy configuration (nginx_reverse_proxy_locations.conf)
-    - backend/instance/config.py where?
-    - corpus_config for each instance (smi, nsu, other)
-  - submodule: korp-frontend (github.com/giellatekno/korp-frontend)
-      fork of spraakbanken/korp-frontend
-      follows upstream, except for the 'giellatekno' branch, which tries to
-         follow dev, but with our changes intact
-  - submodule: korp-backend (github.com/giellatekno/korp-backend)
-      fork of spraakbanken/korp-backend
-      follows upstream
+  README.md              - this file
+  tasks.py               - script to build and push images, and run them locally
+  gtweb2_korp_settings/
+    translations/        - translations needed by the frontend,
+                           will be built into the image (same for all instances)
+    front/
+      config-LANG.yam    - frontend config, will be built into the image
+                           (one file per LANG)
+    corpus_config/       - backend config (one folder per LANG)
+      LANG/              
+        attributes/
+          structural/    - contains metadata fields of the corpora,
+                           stuff like title, one file per property
+                           date, isbn, etc
+          positional/    - data per word, such as pos, deprel, etc,
+                           one file per column (per property)
+        corpora/         - one .yaml file per cwb corpora,
+                           e.g. "sme_admin_20211118.yaml",
+        modes/           - each "sub-corp". So we could have one for the
+                           default korp for that language. one for historical
+                           corpora, one for parallell, etc. språkbanken
+                           uses modes for separating them corpora like that.
 ```
 
 
-# Top-down overview
+## The images
 
-## Reverse proxy (web-facing web-server)
-
-The `gtweb.uit.no` server runs nginx. It acts as a reverse proxy for our Korp
-instances. We have 3 instances of Korp: sami languages (*smi*), non-sami uralic
-languages (abbreviated *nsu*, **n**on-**s**ami **u**ralic), and one for the...
-others (*other*). Each of these require their own `korp-frontend`, and
-`korp-backend`. Hence we have 6 routes in our web-facing nginx server. The
-configuration for the web-facing nginx is in `nginx_reverse_proxy_locations.conf`.
-
-We use Korp's *"modes"* to represent languages. One language per mode.
-Because each "mode" in Korp is presented as one text entry in the top right
-navigation bar, and we want to limit how how many there are, and prevent the
-dropdown selector from showing, we limit ourselves to some 5, 6 or 7 modes, and
-because of this, we run three instances of Korp.
+The **Dockerfile**s to build the images is embedded in the source code of
+**tasks.py**. On the server, running them is done with the
+**gtweb-service-script**. It knows where this repo is located, so it can
+mount in the configuration files from this repo correctly.
 
 
-## The services
+## Frontend image
 
-Both services are built as containers, in our case using `podman`, but it should
-be interchangible with `docker`. The summary is as follows:
+The frontend image takes two arguments: *lang* and *backend*. *lang* is which
+corpora this is the frontend for, which is one of the 12 different languages
+we have a corpora for. *backend* is the url to the backend to use for this
+specific frontend. Building the frontend image is done with the command:
 
 ```
-korp-frontend-smi - static nginx, exposed at port 1341, run with KORP_BACKEND_URL set to /backend/korp-smi
-    podman run -d -p 1341:80 -e "KORP_BACKEND_URL=https://gtweb.uit.no/backend/korp-smi" --name korp-frontend-smi korp-frontend
-
-korp-backend-smi
-    type: gunicorn korp-backend, exposed at port 1342
-    command: podman run --privileged -d -p 1342:1234 -v /corpora/gt_cwb:/corpora/gt_cwb -v /home/anders/korp/corpus_configs/smi:/opt/korp-backend/corpus_config -v /home/anders/korp/config.py:/korp/korp-backend/instance/config.py --security-opt label=disable --name korp-backend-smi korp-backend
-
-korp-frontend-nsu - static nginx, exposed at port 1343, run with KORP_BACKEND_URL set to /backend/korp-nsu
-    podman run -d -p 1343:80 -e "KORP_BACKEND_URL=https://gtweb.uit.no/backend/korp-nsu" --name korp-frontend-nsu korp-frontend
-
-korp-frontend-other - static nginx, exposed at port 1345, run with KORP_BACKEND_URL set to /backend/korp-other
-    podman run -d -p 1345:80 -e "KORP_BACKEND_URL=https://gtweb.uit.no/backend/korp-other" --name korp-frontend-other korp-frontend
+python tasks.py build front <lang> <--local|--prod|--backend=BACKEND>
 ```
 
-### Building and deplying
+`--local` is shorthand for setting the backend to
+`http://localhost:{port_of('back', lang)}`. `--prod` is shorthand for setting
+the backend to `https://gtweb-02.uit.no/korp/backend-{lang}`.
 
-*These are the steps as of now. They may change. Maybe we'll use dedicated image builders,
-maybe we'll use a self-hosted or some registry, and push and pull images from there instead
-of manually saving, scping and loading. Maybe we'll use compose to orchistrate this. Maybe there
-will be scripts that automate some of this... Possibilities are endless...*
-
-1. Build the images locally, tag them as `korp-frontend` or `korp-backend`.
-2. Save the image to a .tar file locally, e.g.: `podman save -o korp-frontend.tar korp-frontend`
-3. scp this file to the server
-4. [on server] Use podman to load this image, e.g.: `podman load -i korp-fronted.tar`
-    1. NOTE: MAY HAVE TO REMOVE THE OLD ONE FIRST(??)
-5. [on server] Stop and remove the old container: `podman stop korp-frontend-smi; podman rm korp-frontend-smi`
-6. [on server] Create and start the new one, using `podman run` commands above.
-7. [on server] Replace the systemd unit file. It should be named e.g. `/etc/systemd/user/korp-frontend-smi.service`.
+*Anders: I would ideally like to be able to set as many variables at image
+runtime, because then I can build just one image, and run them with different
+arguments - but upstream doesn't support it.*.
 
 
-### korp-frontend
+## Backend image
 
-`korp-frontend` is a *SPA* (**S**ingle-**P**age **A**pplication), built as a
-completely static web site. The resulting built folder (named "*dist*") is
-hosted with nginx.
+The backend reads config files at startup to determine all of its settings,
+so there is just one built image. Running a different instance is just a matter
+of mounting in different config files. Build the backend using
 
-#### Backend configuration
+```
+python tasks.py build back
+```
 
-Run the container with the environment variable `KORP_BACKEND_URL` to set where
-the frontend tries to reach the backend. (**Note:** This is a change from the
-upstream source repository, as the upstream just has this information statically
-defined at build time).
-
-#### Build options
-
-The `Dockerfile` is split in a builder, and a slimmer image that copies and
-uses only the necessary build artifacts. If desired, it's also possible to
-build the final image by copying the locally built *dist* folder into the
-image. See the comments in the `Dockerfile` in the repository.
+## The config
 
 
-### korp-backend
+## Running locally
 
-#### Building for deployment
+While testing
 
-The image is built with the command: `podman build -t korp-backend -f Dockerfile`
-(be sure to be in the `korp-backend` directory).
+t to build images, and to push them to the *ACR*
+(*Azure Container Registry*) that we have on Azure (which the server then
+*pulls* images from). It can also be used to run the images locally, but
+you do need to have the compiled cwb files for the backend to actually have
+any data.
 
-A builder step installs and builds the requirements, which are then copied over
-to the final image. Python requirements are c modules, which needs headers to be built,
-as well as CWB binaries that are installed.
 
-#### Running the built image on the server
+## Running on the server
 
 All required configuration files and paths are mapped into the container at
-runtime, using *bind mounts* (argument `-v OUTSIDE_PATH:INSIDE_PATH` passed to
+runtime, using *bind mounts*. The configuration files 
+
+
+
+
+
+(argument `-v OUTSIDE_PATH:INSIDE_PATH` passed to
 `podman run`, where `OUTSIDE_PATH` means a path on the system that runs the
 container, and `INSIDE_PATH` means where this will be visible inside the container).
 These are:
