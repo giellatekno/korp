@@ -47,22 +47,28 @@ mount in the configuration files from this repo correctly.
 
 ## Frontend image
 
-The frontend image takes two arguments: *lang* and *backend*. *lang* is which
-corpora this is the frontend for, which is one of the 12 different languages
-we have a corpora for. *backend* is the url to the backend to use for this
-specific frontend. Building the frontend image is done with the command:
+The frontend image contains the built version of korp-frontend, with the
+*lang* it hosts built into its configuration. Which *backend* the image uses
+is configured by setting the environment variable `BACKEND` at image runtime.
+
+### The dynamic backend hack
+
+Korp-frontend requires the backend to be set in the *yaml* config file at
+built time (when `yarn build` is run). However, the built site contains this
+definition in only a single javascript file. The image has a custom entrypoint
+script that will will use `sed` to *in-place* modify the built javascript file
+when the image starts up, to set backend to whatever the env var `BACKEND` is
+set to. This way, we can set the `korp_backend_url` at image runtime, instead
+of at image built time, drastically reducing the number of images we have to
+maintain (usually, the alternative would imply 2 different images for running
+it locally, and on the server, and additional variants of the image for each
+backend).
+
+Building the frontend image is done with the command:
 
 ```
-python tasks.py build front <lang> <--local|--prod|--backend=BACKEND>
+python tasks.py build front <lang>
 ```
-
-`--local` is shorthand for setting the backend to
-`http://localhost:{port_of('back', lang)}`. `--prod` is shorthand for setting
-the backend to `https://gtweb-02.uit.no/korp/backend-{lang}`.
-
-*Anders: I would ideally like to be able to set as many variables at image
-runtime, because then I can build just one image, and run them with different
-arguments - but upstream doesn't support it.*.
 
 
 ## Backend image
