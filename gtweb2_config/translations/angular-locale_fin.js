@@ -26,73 +26,73 @@ $provide.value("$locale", {
       "FIN PM"
     ],
     "DAY": [
-      "FIN søndag",
-      "FIN mandag",
-      "FIN tirsdag",
-      "FIN onsdag",
-      "FIN torsdag",
-      "FIN fredag",
-      "FIN lørdag"
+      "sunnuntai",
+      "maanantai",
+      "tiistai",
+      "keskiviikko",
+      "torstai",
+      "perjantai",
+      "lauantai"
     ],
     "ERANAMES": [
-      "FIN før Kristus",
-      "FIN etter Kristus"
+      "ennen Kristusta",
+      "Kristuksen jälkeen"
     ],
     "ERAS": [
-      "FIN f.Kr.",
-      "FIN e.Kr."
+      "e.Kr.",
+      "Kr.j."
     ],
     "FIRSTDAYOFWEEK": 1,
     "MONTH": [
-      "FIN januar",
-      "FIN februar",
-      "FIN mars",
-      "FIN april",
-      "FIN mai",
-      "FIN juni",
-      "FIN juli",
-      "FIN august",
-      "FIN september",
-      "FIN oktober",
-      "FIN november",
-      "FIN desember"
+      "tammikuu",
+      "helmikuu",
+      "maaliskuu",
+      "huhtikuu",
+      "toukokuu",
+      "kesäkuu",
+      "heinäkuu",
+      "elokuu",
+      "syyskuu",
+      "lokakuu",
+      "marraskuu",
+      "joulukuu"
     ],
     "SHORTDAY": [
-      "FIN søn",
-      "FIN man",
-      "FIN tir",
-      "FIN ons",
-      "FIN tor",
-      "FIN fre",
-      "FIN lør"
+      "su",
+      "ma",
+      "ti",
+      "ke",
+      "to",
+      "pe",
+      "la"
     ],
     "SHORTMONTH": [
-      "FIN jan.",
-      "FIN feb.",
-      "FIN mars",
-      "FIN apr.",
-      "FIN maj",
-      "FIN juni",
-      "FIN juli",
-      "FIN aug.",
-      "FIN sep.",
-      "FIN okt.",
-      "FIN nov.",
-      "FIN dec."
+      "tam.",
+      "helm.",
+      "maal.",
+      "huht.",
+      "touk.",
+      "kesä.",
+      "hein.",
+      "elo.",
+      "syys.",
+      "loka.",
+      "marras.",
+      "jouluk."
     ],
     "STANDALONEMONTH": [
-      "FIN Januar",
-      "FIN Februar",
-      "FIN Mars",
-      "FIN April",
-      "FIN Mai",
-      "FIN Juni",
-      "FIN Juli",
-      "FIN August",
-      "FIN September",
-      "FIN Oktober",
-      "FIN November",
-      "FIN Desember"
+      "Tammikuu",
+      "Helmikuu",
+      "Maaliskuu",
+      "Huhtikuu",
+      "Toukokuu",
+      "Kesäkuu",
+      "Heinäkuu",
+      "Elokuu",
+      "Syyskuu",
+      "Lokakuu",
+      "Marraskuu",
+      "Joulukuu"
     ],
     "WEEKENDRANGE": [
       5,
@@ -136,8 +136,8 @@ $provide.value("$locale", {
       }
     ]
   },
-  "id": "no",
-  "localeID": "no",
+  "id": "fi",
+  "localeID": "fi",
   "pluralCat": function(n, opt_precision) {  var i = n | 0;  var vf = getVF(n, opt_precision);  if (i == 1 && vf.v == 0) {    return PLURAL_CATEGORY.ONE;  }  return PLURAL_CATEGORY.OTHER;}
 });
 }]);

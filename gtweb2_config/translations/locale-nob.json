@@ -36,20 +36,20 @@
 
 
     "menu": "Meny",
-    "docs": "Dokumentasjon (På svensk)",
+    "docs": "Dokumentasjon (på svensk)",
     "more": "Mer",
     "Korp": "Korp",
     "korp_lab": "Korp Labs",
     "university": "Göteborgs universitet NOB",
     "search_history" : "Søkehistorikk",
     "search_history_clear" : "✘ Fjern søkehistorikk",
-    "add_lang" : "Mer språk",
+    "add_lang" : "Flere språk",
     "remove_lang" : "Færre språk",
     "not_containing" : "Inneholder ikke",
     "negate_explanation" : "Gir alle setninger som ikke matcher søkeuttrykket.",
     "about" : "Om SIKOR og Korp",
     "about_short": "Om Korp",
-    "about_body" : "Korp er Språkbankens konkordansverktøy. For mer informasjon, kommentarer eller forslag, kontakta <a href='mailto:sb-info@svenska.gu.se'>Språkbanken</a>.",
+    "about_body" : "Korp er Språkbankens konkordansverktøy. For mer informasjon, kommentarer eller forslag, kontakt <a href='mailto:sb-info@svenska.gu.se'>Språkbanken</a>.",
     "about_cite_header": "Vise til Korp",
     "about_cite": "Lars Borin, Markus Forsberg and Johan Roxendal. 2012. <a href='http://spraakbanken.gu.se/eng/publikationer/korp-–-corpus-infrastructure-språkbanken' target='_blank'>Korp – the corpus infrastructure of Språkbanken</a><br><a href='http://spraakbanken.gu.se/publikationer/bibtex/1822' target='_blank'><img src='http://spraakbanken.gu.se/sites/spraakbanken.gu.se/themes/gu_sb/img/bibtex.png' alt='BibTeX'></a>",
     "about_man" : "Projektledelse",
@@ -246,7 +246,7 @@
     "compare_name" : "Navn",
     "compare_save" : "Lagre",
 
-    "compare_distinctive" : "Utmärkande för_xxx",
+    "compare_distinctive" : "Utmerkende for",
 
     "msd_long" : "Morfosyntaktisk beskriving",
 
