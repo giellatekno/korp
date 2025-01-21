@@ -1,14 +1,14 @@
 id: mhr_news_20201209
 title:
   eng: News texts
-  nob: NOB News texts
-  sme: SME News texts
-  fin: FIN News texts
+  nob: Nyhetstekster
+  sme: Ođasteavsttat
+  fin: Uutistekstit
 description:
   eng: A collection of news texts
-  nob: NOB A collection of news texts
-  sme: SME A collection of news texts
-  fin: FIN A collection of news texts
+  nob: Ei samling av nyhetstekster
+  sme: Ođasteavsttaid čoakkáldat
+  fin: Uutistekstien kokoelma
 mode:
   - name: default
 pos_attributes:

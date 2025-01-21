@@ -2,13 +2,13 @@ id: smj_news_20211118
 title:
   eng: News texts
   nob: Nyhetstekster
-  sme: SME News texts
-  fin: FIN News texts
+  sme: Ođasteavsttat
+  fin: Uutistekstit
 description:
-  eng: News texts
-  nob: Nyhetstekster
-  sme: SME News texts
-  fin: FIN News texts
+  eng: A collection of news texts
+  nob: Ei samling av nyhetstekster
+  sme: Ođasteavsttaid čoakkáldat
+  fin: Uutistekstien kokoelma
 mode:
   - name: smj
 pos_attributes:

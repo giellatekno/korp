@@ -1,14 +1,14 @@
 id: smj_ficti_20211118
 title:
   eng: Fiction texts
-  nob: Fiksjonstekster
-  sme: SME Fiction texts
-  fin: FIN Fiction texts
+  nob: Skjønnlitteratur
+  sme: Čáppagirjjálašvuohta
+  fin: Kaunokirjallisuus
 description:
-  eng: Ficti texts
-  nob: Fiksjonstekster
-  sme: SME Fiction texts
-  fin: FIN Fiction texts
+  eng: A collection of fiction texts
+  nob: Ei samling av skjønnlitterære tekster
+  sme: čáppagirjjálašvuođa čoakkáldat
+  fin: Kaunokirjallisuuden kokoelma
 mode:
   - name: smj
 pos_attributes:

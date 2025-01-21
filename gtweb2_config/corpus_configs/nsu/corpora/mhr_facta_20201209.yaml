@@ -1,14 +1,14 @@
 id: mhr_facta_20201209
 title:
   eng: Non-fiction texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Sakprosa
+  sme: Áššeprosa
+  fin: Asiatekstit
 description:
   eng: A collection of non-fiction texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Ei samling av sakprosatekster
+  sme: Áššeprosateavsttaid čoakkáldat
+  fin: Asiatekstien kokoelma
 mode:
   - name: mhr
 pos_attributes:
@@ -21,13 +21,13 @@ context:
   - label:
       eng: 1 sentence
       nob: 1 setning
-      sme: SME
-      fin: FIN
+      sme: 1 cealkka
+      fin: 1 lause
     value: 1 sentence
 within:
   - label:
       eng: sentence
       nob: setning
-      sme: SME
-      fin: FIN
+      sme: cealkka
+      fin: lause
     value: sentence

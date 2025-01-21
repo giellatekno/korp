@@ -2,13 +2,13 @@ id: smn_blogs_20211118
 title:
   eng: Blog texts
   nob: Bloggtekster
-  sme: SME Blog texts
-  fin: FIN Blog texts
+  sme: Bloggateavsttat
+  fin: Blogitekstit
 description:
   eng: A collection of blog texts
   nob: En samling av bloggtekster
-  sme: SME A collection of blog texts
-  fin: FIN A collection of blog texts
+  sme: Bloggateavsttaid čoakkáldat
+  fin: Blogitekstien kokoelma
 mode:
   - name: smn
 pos_attributes:

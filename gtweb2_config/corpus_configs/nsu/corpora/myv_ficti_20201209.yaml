@@ -1,14 +1,14 @@
 id: myv_ficti_20201209 
 title:
   eng: Fiction texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Skjønnlitteratur
+  sme: Čáppagirjjálašvuohta
+  fin: Kaunokirjallisuus
 description:
   eng: A collection of fiction texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Ei samling av skjønnlitterære tekster
+  sme: čáppagirjjálašvuođa čoakkáldat
+  fin: Kaunokirjallisuuden kokoelma
 mode:
   - name: myv
 pos_attributes:

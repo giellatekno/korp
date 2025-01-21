@@ -1,14 +1,14 @@
 id: mrj_science_20201209
 title:
   eng: Science texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Vitenskaplige tekster
+  sme: Dieđalaš teavsttat
+  fin: Tieteelliset tekstit
 description:
   eng: A collection of science texts such as masters theses, phd theses, and articles
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Ei samling av vitenskaplige tekster, f.eks. master- og doktoravhandlinger eller artikler
+  sme: Dieđalaš teavsttaid čoakkáldat, nákkosgirjjit, masterbarggut ja artihkkalat
+  fin: Tieteellisten tekstien kokoelma, väitöskirjat, gradut ja tieteelliset artikkelit
 mode:
   - name: mrj
 pos_attributes:
@@ -21,13 +21,13 @@ context:
   - label:
       eng: 1 sentence
       nob: 1 setning
-      sme: SME
-      fin: FIN
+      sme: 1 cealkka
+      fin: 1 lause
     value: 1 sentence
 within:
   - label:
       eng: sentence
       nob: setning
-      sme: SME
-      fin: FIN
+      sme: cealkka
+      fin: lause
     value: sentence

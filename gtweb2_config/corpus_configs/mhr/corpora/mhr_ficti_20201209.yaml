@@ -1,14 +1,14 @@
 id: mhr_ficti_20201209
 title:
   eng: Fiction texts
-  nob: NOB Fiction texts
-  sme: SME Fiction texts
-  fin: FIN Fiction texts
+  nob: Skjønnlitteratur
+  sme: Čáppagirjjálašvuohta
+  fin: Kaunokirjallisuus
 description:
   eng: A collection of fiction texts
-  nob: NOB A collection of fiction texts
-  sme: SME A collection of fiction texts
-  fin: FIN A collection of fiction texts
+  nob: Ei samling av skjønnlitterære tekster
+  sme: čáppagirjjálašvuođa čoakkáldat
+  fin: Kaunokirjallisuuden kokoelma
 mode:
   - name: default
 pos_attributes:

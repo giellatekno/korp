@@ -2,13 +2,13 @@ id: fao_admin_20230517
 title:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME
-  fin: FIN
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 description:
   eng: Administrative texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Administrative tekster
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 mode:
   - name: fao
 pos_attributes:
@@ -21,14 +21,14 @@ context:
   - label:
       eng: 1 sentence
       nob: 1 setning
-      sme: SME
-      fin: FIN
+      sme: 1 cealkka
+      fin: 1 lause
     value: 1 sentence
 within:
   - label:
       eng: sentence
       nob: setning
-      sme: SME
-      fin: FIN
+      sme: cealkka
+      fin: lause
     value: sentence
 

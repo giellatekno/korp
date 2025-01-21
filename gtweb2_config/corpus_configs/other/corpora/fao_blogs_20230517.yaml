@@ -2,13 +2,13 @@ id: fao_blogs_20230517
 title:
   eng: Blog texts
   nob: Bloggtekster
-  sme: SME
-  fin: FIN
+  sme: Bloggateavsttat
+  fin: Blogitekstit
 description:
   eng: A collection of blog texts
   nob: En samling av bloggtekster
-  sme: SME
-  fin: FIN
+  sme: Bloggateavsttaid čoakkáldat
+  fin: Blogitekstien kokoelma
 mode:
   - name: fao
 pos_attributes:

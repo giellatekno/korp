@@ -1,14 +1,14 @@
 id: sme_science_20211118
 title:
   eng: Science texts
-  nob: Vitenskapelige tekster
-  sme: SME Science texts
-  fin: FIN Science texts
+  nob: Vitenskaplige tekster
+  sme: Dieđalaš teavsttat
+  fin: Tieteelliset tekstit
 description:
   eng: A collection of science texts such as masters theses, phd theses, and articles
-  nob: NOB A collection of science texts such as masters theses, phd theses, and articles
-  sme: SME A collection of science texts such as masters theses, phd theses, and articles
-  fin: FIN A collection of science texts such as masters theses, phd theses, and articles
+  nob: Ei samling av vitenskaplige tekster, f.eks. master- og doktoravhandlinger eller artikler
+  sme: Dieđalaš teavsttaid čoakkáldat, nákkosgirjjit, masterbarggut ja artihkkalat
+  fin: Tieteellisten tekstien kokoelma, väitöskirjat, gradut ja tieteelliset artikkelit
 mode:
   - name: default
 pos_attributes:

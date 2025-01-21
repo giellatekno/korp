@@ -1,14 +1,14 @@
 id: fkv_facta_20210319
 title:
   eng: Non-fiction texts
-  nob: NOB Non-fiction texts
-  sme: SME Non-fiction texts
-  fin: FIN Non-fiction texts
+  nob: Sakprosa
+  sme: Áššeprosa
+  fin: Asiatekstit
 description:
   eng: A collection of non-fiction texts
-  nob: NOB A collection of non-fiction texts
-  sme: SME A collection of non-fiction texts
-  fin: FIN A collection of non-fiction texts
+  nob: Ei samling av sakprosatekster
+  sme: Áššeprosateavsttaid čoakkáldat
+  fin: Asiatekstien kokoelma
 mode:
   - name: default
 pos_attributes:

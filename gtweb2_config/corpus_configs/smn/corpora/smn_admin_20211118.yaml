@@ -2,13 +2,13 @@ id: smn_admin_20211118
 title:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME Administrative texts
-  fin: FIN Administrative texts
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 description:
   eng: Administrative texts
-  nob: NOB Administrative texts
-  sme: SME Administrative texts
-  fin: FIN Administrative texts
+  nob: Administrative tekster
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 mode:
   - name: default
 pos_attributes:

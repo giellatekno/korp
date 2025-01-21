@@ -2,13 +2,13 @@ id: sme_admin_20211118
 title:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME
-  fin: FIN
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 description:
   eng: Administrative texts, mostly from the <a href="http://www.samediggi.no", target="_blank">Saami Parliament</a> in Norway
-  nob: NOB Administrative texts, mostly from the <a href="http://www.samediggi.no", target="_blank">Saami Parliament</a> in Norway
-  sme: SME Administrative texts, mostly from the <a href="http://www.samediggi.no", target="_blank">Saami Parliament</a> in Norway
-  fin: FIN Administrative texts, mostly from the <a href="http://www.samediggi.no", target="_blank">Saami Parliament</a> in Norway
+  nob: Administrative tekster, mostly from the <a href="http://www.samediggi.no", target="_blank">Saami Parliament</a> in Norway
+  sme: Hálddahuslaš teavsttat, stuorimus oassi <a href="http://www.samediggi.no", target="_blank">Norgga Sámedikkis</a>
+  fin: Hallinnolliset tekstit, enimmäkseen <a href="http://www.samediggi.no", target="_blank">Norjan saamelaiskäräjistä</a>
 mode:
   - name: default
 pos_attributes:

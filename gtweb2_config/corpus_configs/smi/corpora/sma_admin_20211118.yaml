@@ -2,13 +2,13 @@ id: sma_admin_20211118
 title:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME Administrative texts
-  fin: FIN Administrative texts
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 description:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME Administrative texts
-  FIN: FIN Administrative texts
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 mode:
   - name: sma
 pos_attributes:
@@ -31,3 +31,4 @@ within:
       sme: cealkka
       fin: lause
     value: sentence
+

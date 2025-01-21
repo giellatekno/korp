@@ -1,14 +1,14 @@
 id: udm_wikipedia_20201209
 title:
   eng: Wikipedia
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Wikipedia
+  sme: Wikipedia
+  fin: Wikipedia
 description:
   eng: Wikipedia
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Wikipedia
+  sme: Wikipedia
+  fin: Wikipedia
 mode:
   - name: udm
 pos_attributes:

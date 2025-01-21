@@ -1,14 +1,14 @@
 id: myv_wikipedia_20201209
 title:
   eng: Wikipedia
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Wikipedia
+  sme: Wikipedia
+  fin: Wikipedia
 description:
   eng: Wikipedia
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Wikipedia
+  sme: Wikipedia
+  fin: Wikipedia
 mode:
   - name: myv
 pos_attributes:
@@ -21,13 +21,13 @@ context:
   - label:
       eng: 1 sentence
       nob: 1 setning
-      sme: SME
-      fin: FIN
+      sme: 1 cealkka
+      fin: 1 lause
     value: 1 sentence
 within:
   - label:
       eng: sentence
       nob: setning
-      sme: SME
-      fin: FIN
+      sme: cealkka
+      fin: lause
     value: sentence

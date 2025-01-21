@@ -2,13 +2,13 @@ id: fao_admin_20230517
 title:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME Administrative texts
-  fin: FIN Administrative texts
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 description:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME Administrative texts
-  fin: FIN Administrative texts
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 mode:
   - name: default
 pos_attributes:
@@ -47,3 +47,4 @@ within:
       sme: cealkka
       fin: lause
     value: sentence
+

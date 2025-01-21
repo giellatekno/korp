@@ -2,13 +2,13 @@ id: fkv_admin_20210319
 title:
   eng: Administrative texts
   nob: Administrative tekster
-  sme: SME
-  fin: FIN
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 description:
   eng: Administrative texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: Administrative tekster
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
 mode:
   - name: default
 pos_attributes:
@@ -31,3 +31,4 @@ within:
       sme: SME
       fin: FIN
     value: sentence
+

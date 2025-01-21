@@ -1,14 +1,14 @@
 id: smj_facta_20211118
 title:
-  eng: Facta texts
-  nob: Faktatekster
-  sme: SME Facta texts
-  fin: FIN Facta texts
+  eng: Non-fiction texts
+  nob: Sakprosa
+  sme: Áššeprosa
+  fin: Asiatekstit
 description:
-  eng: Facta texts
-  nob: Faktatekster
-  sme: SME Facta texts
-  fin: FIN Facta texts
+  eng: A collection of non-fiction texts
+  nob: Ei samling av sakprosatekster
+  sme: Áššeprosateavsttaid čoakkáldat
+  fin: Asiatekstien kokoelma
 mode:
   - name: smj
 pos_attributes:
