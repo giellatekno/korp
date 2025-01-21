@@ -2,8 +2,8 @@ order: 3
 label:
   eng: Grammatical analysis
   nob: Grammatisk analyse
-  sme: SME
-  fin: FIN
+  sme: Sojahananalysa
+  fin: Morfologinen analyysi
 opts:
   contains: '_='
   ends_with: '&='

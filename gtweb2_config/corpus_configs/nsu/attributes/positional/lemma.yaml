@@ -2,8 +2,8 @@ order: 1
 label:
   eng: Base form
   nob: Grunnform
-  sme: SME
-  fin: FIN
+  sme: Vuođđohápmi
+  fin: Perusmuoto
 extended_template: <input ng-model='input' escaper>
 opts:
   contains: incontains_contains

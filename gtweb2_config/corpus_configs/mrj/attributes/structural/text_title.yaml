@@ -1,8 +1,8 @@
 label:
   eng: Title
   nob: Tittel
-  sme: SME
-  fin: FIN
+  sme: Namma
+  fin: Nimi
 opts:
   is: "="
   is_not: "!="

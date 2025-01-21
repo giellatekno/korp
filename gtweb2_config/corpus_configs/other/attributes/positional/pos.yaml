@@ -2,8 +2,8 @@ order: 0
 label:
   eng: Part-of-speech
   nob: Ordklasse
-  sme: SME
-  fin: FIN
+  sme: Sátneluohkká
+  fin: Sanaluokka
 dataset:
   A: A
   N: N
