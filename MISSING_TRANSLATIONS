@@ -1,0 +1,104 @@
+the commands:
+
+cd gtweb2_config/corpus_configs
+rg -IN SME | sort | uniq
+
+gives us this list of missing translations for SME:
+
+  eng: A collection of legislative texts
+  sme: 
+
+  eng: Bible texts
+  sme: 
+
+  eng: Erzya texts
+  sme: 
+
+  eng: Hill Mari texts
+  sme: 
+
+  eng: Komi-Permyak texts
+  sme: 
+
+  eng: Komi-Zyrian texts
+  sme: 
+
+  eng: Law texts
+  sme: 
+
+  eng: Literature texts
+  sme: 
+
+  eng: Meadow Mari texts
+  sme: 
+
+  eng: Moksha texts
+  sme: 
+
+  eng: Religion texts
+  sme: 
+
+  eng: Texts on religion
+  sme: 
+
+  eng: Udmurt texts
+  sme: 
+
+
+
+Same command, but replace SME with FIN, gives these missing translations for
+FIN:
+
+  fin: FIN A collection of legislative texts
+  fin: FIN Bible texts
+  fin: FIN Erzya texts
+  fin: FIN Hill Mari texts
+  fin: FIN Komipermjakiske tekster
+  fin: FIN Komi-Permyak texts
+  fin: FIN Komi-Zyrian texts
+  fin: FIN Law texts
+  fin: FIN Literature texts
+  fin: FIN Meadow Mari texts
+  fin: FIN Moksha texts
+  fin: FIN Religion texts
+  fin: FIN Texts on religion
+  fin: FIN Udmurt texts
+
+
+
+for RUS:
+
+  rus: RUS A collection of fiction texts
+  rus: RUS A collection of legislative texts
+  rus: RUS A collection of news texts
+  rus: RUS a collection of news texts
+  rus: RUS A collection of non-fiction texts
+  rus: RUS A collection of science texts such as masters theses, phd theses, and articles
+  rus: RUS Erzya texts
+  rus: RUS Fiction texts
+  rus: RUS Hill Mari texts
+  rus: RUS Komi-Permyak texts
+  rus: RUS Komi-Zyrian texts
+  rus: RUS Law texts
+  rus: RUS Moksha texts
+  rus: RUS News texts
+  rus: RUS Non-fiction texts
+  rus: RUS Science texts
+  rus: RUS Udmurt texts
+
+
+Additionally, for RUS, I imported some translations I found in the translations
+files from the old server. To see them, use the commmand:
+
+cd gtweb2_config/corpus_configs
+grep RUS -r . -A 3 -B 3
+
+It should give a list of where these are used, with some context to see its
+translations in other languages, e.g like in these lines:
+
+./mrj/attributes/structural/text_first_name.yaml-  nob: Fornavn
+./mrj/attributes/structural/text_first_name.yaml-  sme: Ovdanamma
+./mrj/attributes/structural/text_first_name.yaml-  fin: Etunimi
+./mrj/attributes/structural/text_first_name.yaml:  rus: RUS Имя
+
+So in that file, there is a russian translation, but it may not be correct.
