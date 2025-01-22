@@ -2,13 +2,13 @@ id: sma_bible_20211118
 title:
   eng: Bible texts
   nob: Bibeltekster
-  sme: SME
-  fin: FIN
+  sme: SME Bible texts
+  fin: FIN Bible texts
 description:
   eng: Bible texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  nob: NOB Bible texts
+  sme: SME Bible texts
+  fin: FIN Bible texts
 mode:
   - name: default
 pos_attributes:

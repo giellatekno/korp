@@ -1,14 +1,14 @@
 id: sma_laws_20211118
 title:
   eng: Law texts
-  nob: Lovtekster
-  sme: SME
-  fin: FIN
+  nob: Juridiske tekster
+  sme: SME Law texts
+  fin: FIN Law texts
 description:
-  eng: Law texts
-  nob: NOB
-  sme: SME
-  fin: FIN
+  eng: A collection of legislative texts
+  nob: NOB A collection of legislative texts
+  sme: SME A collection of legislative texts
+  fin: FIN A collection of legislative texts
 mode:
   - name: sma
 pos_attributes:

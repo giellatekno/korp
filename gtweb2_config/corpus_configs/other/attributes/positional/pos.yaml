@@ -34,106 +34,105 @@ translation:
   A:
     eng: Adjective
     nob: Adjektiv
-    sme: SME
-    fin: FIN
+    sme: adjektiiva
+    fin: adjektiivi
   N:
     eng: Noun
     nob: Substantiv
-    sme: SME
-    fin: FIN
+    sme: substantiiva
+    fin: substantiivi
   V:
     eng: Verb
     nob: Verb
-    sme: SME
-    fin: FIN
+    sme: vearba
+    fin: verbi
   Adv:
     eng: Adverb
     nob: Adverb
-    sme: SME
-    fin: FIN
+    sme: advearba
+    fin: adverbi
   Po:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: postposition
+    nob: postposisjon
+    sme: postposišuvdna
+    fin: postpositio
   Pr:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: preposition
+    nob: preposisjon
+    sme: preposišuvdna
+    fin: prepositio
   Pron:
     eng: Pronoun
     nob: Pronomen
-    sme: SME
-    fin: FIN
+    sme: pronomena
+    fin: pronomini
   Det:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: determinative
+    nob: determinativ
+    sme: determinative
+    fin: determinatiivi
   Num:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: numeral
+    nob: numeral
+    sme: numerála
+    fin: numeraali
   Cmp_SplitR:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: right side of a compound
+    nob: høyre side av sammensetning
+    sme: goallosteami olgeš bealli
+    fin: yhdyssanan oikea puoli
   Cmp_Sh:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: compound short form
+    nob: kortform-sammensetning
+    sme: goallosteami otnon hápmi
+    fin: yhdyssanan lyhennetty muoto
   CmpNP_First:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: compound part
+    nob: del av sammensetning
+    sme: goallosteami hápmi
+    fin: yhdyssana
   CmpNP_None:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: compound part
+    nob: del av sammensetning
+    sme: goallosteami hápmi
+    fin: yhdyssana
   Cmp_SgNom:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: singular nominative compound
+    nob: entall-nominativ-sammensetning
+    sme: ovttaidlogu-nominatiiva-goallosteapmi
+    fin: yksikön nominatiivi yhdyssanan etuosana
   Pcle:
     eng: Particle
     nob: Partikkel
-    sme: SME
-    fin: FIN
+    sme: partihkal
+    fin: partikkeli
   PUNCT:
     eng: Punctuation
     nob: Punktasjon
-    sme: SME
-    fin: FIN
+    sme: mearka cealkaga siste
+    fin: välimerkki
   CC:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: conjunction
+    nob: konjunksjon
+    sme: konjunkšuvdna
+    fin: konjunktio
   Interj:
     eng: Interjection TODO
     nob: Interjeksjon TODO
-    sme: SME
-    fin: FIN
+    sme: interjekšuvdna
+    fin: interjektio
   CS:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: subjunction
+    nob: subjunksjon
+    sme: subjunkšuvdna
+    fin: subjunktio
   CLB:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
+    eng: clause boundary
+    nob: setningsgrensemerke
+    sme: cealkkaráji mearka
+    fin: lauserajan merkki
   ___:
-    eng: ENG
-    nob: NOB
-    sme: SME
-    fin: FIN
-  
+    eng: unknown
+    nob: ukjent
+    sme: dovddatmeahttun
+    fin: tuntematon
