@@ -4,11 +4,13 @@ title:
   nob: Skjønnlitteratur
   sme: Čáppagirjjálašvuohta
   fin: Kaunokirjallisuus
+  rus: RUS Fiction texts
 description:
   eng: A collection of fiction texts
   nob: Ei samling av skjønnlitterære tekster
   sme: čáppagirjjálašvuođa čoakkáldat
   fin: Kaunokirjallisuuden kokoelma
+  rus: RUS A collection of fiction texts
 mode:
   - name: default
 pos_attributes:
@@ -23,6 +25,7 @@ context:
       nob: 1 setning
       sme: 1 cealkka
       fin: 1 lause
+      rus: 1 предложение
     value: 1 sentence
 within:
   - label:
@@ -30,4 +33,5 @@ within:
       nob: setning
       sme: cealkka
       fin: lause
+      rus: предложение
     value: sentence

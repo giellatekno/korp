@@ -3,6 +3,7 @@ label:
   nob: dependensrelasjon
   sme: Dependeansa
   fin: Dependenssisuhde
+  rus: RUS отношение зависимости
 extended_component: datasetSelect
 dataset:
   "→A"        :    "→A"

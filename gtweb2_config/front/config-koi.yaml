@@ -8,6 +8,8 @@ languages:
     label: Suomi
   - value: eng
     label: English
+  - value: rus
+    label: По-русски
 has_timespan: false
 
 # anders: autocomplete is currently hard-coded to really only work for

@@ -4,11 +4,13 @@ title:
   nob: Vitenskaplige tekster
   sme: Dieđalaš teavsttat
   fin: Tieteelliset tekstit
+  rus: RUS Science texts
 description:
   eng: A collection of science texts such as masters theses, phd theses, and articles
   nob: Ei samling av vitenskaplige tekster, f.eks. master- og doktoravhandlinger eller artikler
   sme: Dieđalaš teavsttaid čoakkáldat, nákkosgirjjit, masterbarggut ja artihkkalat
   fin: Tieteellisten tekstien kokoelma, väitöskirjat, gradut ja tieteelliset artikkelit
+  rus: RUS A collection of science texts such as masters theses, phd theses, and articles
 mode:
   - name: default
 pos_attributes:
@@ -39,6 +41,7 @@ context:
       nob: 1 setning
       sme: 1 cealkka
       fin: 1 lause
+      rus: 1 предложение
     value: 1 sentence
 within:
   - label:
@@ -46,4 +49,5 @@ within:
       nob: setning
       sme: cealkka
       fin: lause
+      rus: предложение
     value: sentence
