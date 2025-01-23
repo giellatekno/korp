@@ -26,20 +26,33 @@ def port_of(frontorback, lang):
     return port
 
 
-DOCKERFILE_FRONTEND = """
+DOCKERFILE_FRONTEND_BASE = """
 FROM docker.io/library/debian:bookworm AS builder
-
-ARG instance
-
 RUN <<EOF
     set -eux
     apt-get update
     apt-get install -y --no-install-recommends git nginx npm
     npm install --global yarn
     git clone --branch master --depth 1 https://github.com/spraakbanken/korp-frontend.git /korp/korp-frontend
+    cd /korp/korp-frontend
+    yarn
 EOF
 
-WORKDIR /korp
+# Translation files are the same for all instances
+COPY ./gtweb2_config/translations/* /korp/korp-frontend/app/translations
+
+# Change the logo, by copying in the logo, and a patch to change file soruce
+# code to use this logo
+COPY ./gt_image.patch /korp/korp-frontend
+COPY ./giellatekno_logo_official.svg /korp/korp-frontend/app/img/giellatekno_logo_official.svg
+WORKDIR /korp/korp-frontend
+RUN -p0 patch <gt_image.patch
+"""
+
+DOCKERFILE_FRONTEND = """
+FROM korp-frontend-base AS builder
+
+ARG instance
 
 COPY ./gtweb2_config/front/config-${instance}.yaml /korp/korp-frontend/app/config.yml
 RUN mkdir -p /korp/korp-frontend/app/modes
@@ -49,16 +62,8 @@ RUN mkdir -p /korp/korp-frontend/app/modes
 # build process replaced with some non-js text about the file not being
 # found.
 RUN touch /korp/korp-frontend/app/modes/default_mode.js
-
-# Extra translation files for the frontend
-COPY ./gtweb2_config/translations/* /korp/korp-frontend/app/translations
-
-RUN <<EOF
-    set -eux
-    cd /korp/korp-frontend
-    yarn
-    yarn build
-EOF
+WORKDIR /korp/korp-frontend
+RUN yarn build
 
 
 FROM docker.io/library/nginx
@@ -87,6 +92,10 @@ ENTRYPOINT [ "/entry.sh" ]
 CMD ["nginx", "-g", "daemon off;"]
 """
 
+
+# TODO use locally downloaded cwb_3.5.0-1_amd64.deb instead of getting it
+# from sourceforge. It's only 450k, and it's nice to not have to rely on
+# anyone to get it
 
 DOCKERFILE_BACKEND = """
 FROM docker.io/library/debian:bookworm AS builder
@@ -166,6 +175,13 @@ def run_cmd(cmd, *args, **kwargs):
 
 def build_front(lang):
     assert isinstance(lang, str)
+    print("Building korp-frontend-base image")
+    cmd = (
+        "podman build "
+        "-t korp-frontend-base "
+        f"-f - {os.getcwd()}"
+    )
+    run_cmd(cmd, input=DOCKERFILE_FRONTEND_BASE, encoding="utf-8")
 
     cmd = (
         "podman build "
@@ -235,7 +251,7 @@ def sync_settings():
     run_cmd(
         "rsync "
         "-rv "  # r = recursively, v = verbose
-        "--stats "
+        "--stats "  # show stats at the end
         "gtweb2_config/ "  # copy everything in the directory
         "gtweb-02.uit.no:/home/services/korp/config/"  # to this directory
     )
