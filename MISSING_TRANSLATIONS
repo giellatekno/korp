@@ -6,63 +6,62 @@ rg -IN SME | sort | uniq
 gives us this list of missing translations for SME:
 
   eng: A collection of legislative texts
-  sme: 
+  sme: Láhkateavsttaid čoakkaldat
 
   eng: Bible texts
-  sme: 
+  sme: Biibbalteavsttat
 
   eng: Erzya texts
-  sme: 
+  sme: Ersagiela teavsttat
 
   eng: Hill Mari texts
-  sme: 
+  sme: Várremarigiela teavsttat
 
   eng: Komi-Permyak texts
-  sme: 
+  sme: Komipermjaka teavsttat
 
   eng: Komi-Zyrian texts
-  sme: 
+  sme: Komigiela teavsttat
 
   eng: Law texts
-  sme: 
+  sme: Láhkateavsttat
 
   eng: Literature texts
-  sme: 
+  sme: Girjjálašvuođa teavsttat
 
   eng: Meadow Mari texts
-  sme: 
+  sme: Niitomarigiela teavsttat
 
   eng: Moksha texts
-  sme: 
+  sme: Mokšagiela teavsttat
 
   eng: Religion texts
-  sme: 
+  sme: Oskkoldatlaš teavsttat
 
   eng: Texts on religion
-  sme: 
+  sme: Teavsttat oskku birra
 
   eng: Udmurt texts
-  sme: 
+  sme: Udmurtagiela teavsttat
 
 
 
 Same command, but replace SME with FIN, gives these missing translations for
 FIN:
 
-  fin: FIN A collection of legislative texts
-  fin: FIN Bible texts
-  fin: FIN Erzya texts
-  fin: FIN Hill Mari texts
-  fin: FIN Komipermjakiske tekster
-  fin: FIN Komi-Permyak texts
-  fin: FIN Komi-Zyrian texts
-  fin: FIN Law texts
-  fin: FIN Literature texts
-  fin: FIN Meadow Mari texts
-  fin: FIN Moksha texts
-  fin: FIN Religion texts
-  fin: FIN Texts on religion
-  fin: FIN Udmurt texts
+  fin: Lakitekstit
+  fin: Raamattutekstit
+  fin: Ersän tekstit
+  fin: Vuorimarin tekstit
+  fin: Komipermjakin tekstit
+  fin: Komisyrjäänin texts
+  fin: Lakitekstit
+  fin: Kaunokirjallisuus
+  fin: Niitymarin tekstit
+  fin: Mokšan tekstit
+  fin: Uskonnolliset tekstit
+  fin: Tekstit uskonnosta
+  fin: Udmurtin tekstit
 
 
 
@@ -86,6 +85,23 @@ for RUS:
   rus: RUS Science texts
   rus: RUS Udmurt texts
 
+  rus: Сборник художественных текстов
+  rus: Сборник законодательных текстов
+  rus: Сборник новостных текстов
+  rus: Сборник новостных текстов
+  rus: Сборник документальных текстов
+  rus: Сборник научных текстов, таких как магистерские и докторские диссертации и статьи
+  rus: Эрзянские тексты
+  rus: Художественные тексты
+  rus: Горномарийские тексты
+  rus: Коми-пермяцкие тексты
+  rus: Коми-зырянские тексты
+  rus: Юридические тексты
+  rus: Мокшанские тексты
+  rus: Новостные тексты
+  rus: Документальные тексты
+  rus: Научные тексты
+  rus: Удмуртские тексты
 
 Additionally, for RUS, I imported some translations I found in the translations
 files from the old server. To see them, use the commmand:
