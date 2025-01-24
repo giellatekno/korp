@@ -4,7 +4,7 @@ label:
   nob: Grammatisk analyse
   sme: Sojahananalysa
   fin: Morfologinen analyysi
-  rus: RUS грамматический анализ
+  rus: грамматический анализ
 opts:
   contains: '_='
   ends_with: '&='

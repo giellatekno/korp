@@ -2,15 +2,15 @@ id: kpv_laws_20201209
 title:
   eng: Law texts
   nob: Juridiske tekster
-  sme: SME Law texts
-  fin: FIN Law texts
-  rus: RUS Law texts
+  sme: Láhkateavsttat
+  fin: Lakitekstit
+  rus: Юридические тексты
 description:
   eng: A collection of legislative texts
-  nob: NOB A collection of legislative texts
-  sme: SME A collection of legislative texts
-  fin: FIN A collection of legislative texts
-  rus: RUS A collection of legislative texts
+  nob: Ei samling av lovtekstar
+  sme: Láhkateavsttaid čoakkáldat
+  fin: Lakitekstien kokoelma
+  rus: Сборник законодательных текстов
 mode:
   - name: default
 pos_attributes:

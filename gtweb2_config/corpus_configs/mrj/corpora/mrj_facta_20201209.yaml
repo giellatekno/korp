@@ -4,13 +4,13 @@ title:
   nob: Sakprosa
   sme: Áššeprosa
   fin: Asiatekstit
-  rus: RUS Non-fiction texts
+  rus: Нон-фикшн
 description:
   eng: A collection of non-fiction texts
   nob: Ei samling av sakprosatekster
   sme: Áššeprosateavsttaid čoakkáldat
   fin: Asiatekstien kokoelma
-  rus: RUS A collection of non-fiction texts
+  rus: сборник научно-популярных текстов
 mode:
   - name: default
 pos_attributes:

@@ -4,11 +4,13 @@ title:
   nob: Sakprosa
   sme: Áššeprosa
   fin: Asiatekstit
+  rus: Нон-фикшн
 description:
   eng: A collection of non-fiction texts
   nob: Ei samling av sakprosatekster
   sme: Áššeprosateavsttaid čoakkáldat
   fin: Asiatekstien kokoelma
+  rus: сборник научно-популярных текстов
 mode:
   - name: mhr
 pos_attributes:
@@ -23,6 +25,7 @@ context:
       nob: 1 setning
       sme: 1 cealkka
       fin: 1 lause
+      rus: 1 предложение
     value: 1 sentence
 within:
   - label:
@@ -30,4 +33,5 @@ within:
       nob: setning
       sme: cealkka
       fin: lause
+      rus: предложение
     value: sentence

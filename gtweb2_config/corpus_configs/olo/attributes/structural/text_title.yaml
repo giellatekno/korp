@@ -3,6 +3,7 @@ label:
   nob: Tittel
   sme: Namma
   fin: Nimi
+  rus: Имя
 opts:
   is: "="
   is_not: "!="

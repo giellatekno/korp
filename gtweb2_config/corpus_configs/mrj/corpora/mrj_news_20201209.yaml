@@ -4,13 +4,13 @@ title:
   nob: Nyhetstekster
   sme: Ođasteavsttat
   fin: Uutistekstit
-  rus: RUS News texts
+  rus: Тексты новостей
 description:
   eng: A collection of news texts
   nob: Ei samling av nyhetstekster
   sme: Ođasteavsttaid čoakkáldat
   fin: Uutistekstien kokoelma
-  rus: RUS a collection of news texts
+  rus: Сборник новостных текстов
 mode:
   - name: default
 pos_attributes:

@@ -5,7 +5,7 @@ label:
   nob: Grunnform
   sme: Vuođđohápmi
   fin: Perusmuoto
-  rus: RUS базовая форма
+  rus: начальная форма
 extended_template: <input ng-model='input' escaper>
 opts:
   contains: '_='

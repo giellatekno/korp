@@ -5,7 +5,7 @@ label:
   nob: Ordklasse
   sme: Sátneluohkká
   fin: Sanaluokka
-  rus: RUS часть речи
+  rus: Часть речи
 dataset:
   A: A
   N: N
@@ -38,124 +38,124 @@ translation:
     nob: adjektiv
     sme: adjektiiva
     fin: adjektiivi
-    rus: RUS имя прилагательное
+    rus: имя прилагательное
   N:
     eng: noun
     nob: substantiv
     sme: substantiiva
     fin: substantiivi
-    rus: RUS существительное
+    rus: существительное
   V:
     eng: verb
     nob: verb
     sme: vearba
     fin: verbi
-    rus: RUS глагол
+    rus: глагол
   Adv:
     eng: adverb
     nob: adverb
     sme: advearba
     fin: adverbi
-    rus: RUS наречие
+    rus: наречие
   Po:
     eng: postposition
     nob: postposisjon
     sme: postposišuvdna
     fin: postpositio
-    rus: RUS послелог
+    rus: послелог
   Pr:
     eng: preposition
     nob: preposisjon
     sme: preposišuvdna
     fin: prepositio
-    rus: RUS предлог
+    rus: предлог
   Pron:
     eng: pronoun
     nob: pronomen
     sme: pronomena
     fin: pronomini
-    rus: RUS предлог
+    rus: местоимение
   Det:
     eng: determinative
     nob: determinativ
     sme: determinative
     fin: determinatiivi
-    rus: RUS определяющая часть речи
+    rus: детерминатив
   Num:
     eng: numeral
     nob: numeral
     sme: numerála
     fin: numeraali
-    rus: RUS цифра
+    rus: цифра
   Cmp_SplitR:
     eng: right side of a compound
     nob: høyre side av sammensetning
     sme: goallosteami olgeš bealli
     fin: yhdyssanan oikea puoli
-    rus: RUS правая часть составного слова
+    rus: правая часть составного слова
   Cmp_Sh:
     eng: compound short form
     nob: kortform-sammensetning
     sme: goallosteami otnon hápmi
     fin: yhdyssanan lyhennetty muoto
-    rus: RUS краткая форма составного слова 
+    rus: краткая форма составного слова 
   CmpNP_First:
     eng: compound part
     nob: del av sammensetning
     sme: goallosteami hápmi
     fin: yhdyssana
-    rus: RUS часть составного слова
+    rus: часть составного слова
   CmpNP_None:
     eng: compound part
     nob: del av sammensetning
     sme: goallosteami hápmi
     fin: yhdyssana
-    rus: RUS нет часть составного слова
+    rus: часть составного слова
   Cmp_SgNom:
     eng: singular nominative compound
     nob: entall-nominativ-sammensetning
     sme: ovttaidlogu-nominatiiva-goallosteapmi
     fin: yksikön nominatiivi yhdyssanan etuosana
-    rus: RUS Ед.ч. им.п. составного слова
+    rus: Ед.ч. им.п. составного слова
   Pcle:
     eng: particle
     nob: partikkel
     sme: partihkal
     fin: partikkeli
-    rus: RUS частица
+    rus: частица
   PUNCT:
     eng: punctuation
     nob: interpunksjon
     sme: mearka cealkaga siste
     fin: välimerkki
-    rus: RUS пунктуация в предложении
+    rus: пунктуация в предложении
   CC:
     eng: conjunction
     nob: konjunksjon
     sme: konjunkšuvdna
     fin: konjunktio
-    rus: RUS соединение
+    rus: сочинительный союз
   Interj:
     eng: interjection
     nob: interjeksjon
     sme: interjekšuvdna
     fin: interjektio
-    rus: RUS междометие
+    rus: междометие
   CS:
     eng: subjunction
     nob: subjunksjon
     sme: subjunkšuvdna
     fin: subjunktio
-    rus: RUS присоединение
+    rus: подчинительный союз
   CLB:
     eng: clause boundary
     nob: setningsgrensemerke
     sme: cealkkaráji mearka
     fin: lauserajan merkki
-    rus: RUS пунктуация в конце предложения
+    rus: пунктуация в конце предложения
   ___:
     eng: unknown
     nob: ukjent
     sme: dovddatmeahttun
     fin: tuntematon
-    rus: RUS неизвестный
+    rus: неизвестный
