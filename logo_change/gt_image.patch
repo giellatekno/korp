@@ -1,34 +1,35 @@
 diff --git a/app/scripts/components/app-header.ts b/app/scripts/components/app-header.ts
-index 9b09b812..ade16757 100644
+index 9b09b812..50977f72 100644
 --- a/app/scripts/components/app-header.ts
 +++ b/app/scripts/components/app-header.ts
-@@ -3,8 +3,7 @@ import angular, { IController, IScope, ITimeoutService, ui } from "angular"
+@@ -3,8 +3,8 @@ import angular, { IController, IScope, ITimeoutService, ui } from "angular"
  import _ from "lodash"
  import korpLogo from "../../img/korp_slogan.svg"
  import korpLogoEn from "../../img/korp_slogan_en.svg"
 -import sbxLogo from "../../img/sprakbanken_text_slogan.svg"
 -import sbxLogoEn from "../../img/sprakbanken_text_slogan_en.svg"
 +import gtLogo from "../../img/giellatekno_logo_official.svg"
++import uitLogo from "../../img/UiT_Segl_Eng_Sort_960px.png"
  import guLogo from "../../img/gu_logo_sv_head.svg"
  import settings from "@/settings"
  import currentMode from "@/mode"
-@@ -131,15 +130,14 @@ angular.module("korpApp").component("appHeader", {
+@@ -131,15 +131,14 @@ angular.module("korpApp").component("appHeader", {
  
                  <a
                      class="hidden min-[1150px]:flex h-20 shrink flex-col justify-end"
 -                    href="https://spraakbanken.gu.se/"
-+                    href="https://giellatekno.uit.no/"
++                    href="https://uit.no/"
                      target="_blank"
                  >
 -                    <img ng-if="$root.lang == 'swe'" src="${sbxLogo}" />
 -                    <img ng-if="$root.lang != 'swe'" src="${sbxLogoEn}" />
-+                    <img src="${gtLogo}" />
++                    <img style="min-width: 120px; max-width: 120px;" src="${uitLogo}" />
                  </a>
  
 -                <a class="hidden xl:block shrink-0 h-32 -mt-2" href="https://gu.se/" target="_blank">
 -                    <img src="${guLogo}" class="h-full" />
 +                <a class="hidden xl:block shrink-0 h-32 -mt-2" href="https://giellatekno.uit.no/" target="_blank">
-+                    <img src="${gtLogo}" class="h-full" />
++                    <img style="height: 100px;" src="${gtLogo}" class="h-full" />
                  </a>
              </div>
          </div>

@@ -45,6 +45,7 @@ COPY ./gtweb2_config/translations/* /korp/korp-frontend/app/translations
 # code to use this logo
 COPY ./logo_change/gt_image.patch /korp/korp-frontend
 COPY ./logo_change/giellatekno_logo_official.svg /korp/korp-frontend/app/img/giellatekno_logo_official.svg
+COPY ./logo_change/UiT_Segl_Eng_Sort_960px.png /korp/korp-frontend/app/img/UiT_Segl_Eng_Sort_960px.png
 WORKDIR /korp/korp-frontend/
 RUN patch -p1 <gt_image.patch
 """
