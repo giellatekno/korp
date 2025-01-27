@@ -2,13 +2,13 @@ id: smj_laws_20211118
 title:
   eng: Law texts
   nob: Juridiske tekster
-  sme: SME Law texts
-  fin: FIN Law texts
+  sme: Láhkateavsttat
+  fin: Lakitekstit
 description:
   eng: Law texts
   nob: Juridiske tekster
-  sme: SME Law texts
-  fin: FIN Law texts
+  sme: Láhkateavsttat
+  fin: A collection of legislative texts
 mode:
   - name: default
 pos_attributes:

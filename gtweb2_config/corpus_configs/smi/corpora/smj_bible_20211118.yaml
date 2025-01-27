@@ -2,13 +2,13 @@ id: smj_bible_20211118
 title:
   eng: Bible texts
   nob: Bibeltekster
-  sme: SME Bible texts
-  fin: FIN Bible texts
+  sme: Biibbalteavsttat
+  fin: Raamattutekstit
 description:
   eng: Bible texts
   nob: Bibeltekster
-  sme: SME Bible texts
-  fin: FIN Bible texts
+  sme: Biibbalteavsttat
+  fin: Raamattutekstit
 mode:
   - name: smj
 pos_attributes:

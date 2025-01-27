@@ -2,12 +2,12 @@ id: sms_literature_20211118
 title:
   eng: Literature texts
   nob: Litteraturtekster
-  sme: SME Literature texts
+  sme: Girjjálašvuođa teavsttat
   fin: FIN Literature texts
 description:
   eng: Literature texts
-  nob: NOB Literature texts
-  sme: SME Literature texts
+  nob: Litteraturtekster
+  sme: Girjjálašvuođa teavsttat
   fin: FIN Literature texts
 mode:
   - name: default

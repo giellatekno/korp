@@ -31,7 +31,7 @@ FROM docker.io/library/debian:bookworm AS builder
 RUN <<EOF
     set -eux
     apt-get update
-    apt-get install -y --no-install-recommends git nginx npm
+    apt-get install -y --no-install-recommends git nginx npm patch
     npm install --global yarn
     git clone --branch master --depth 1 https://github.com/spraakbanken/korp-frontend.git /korp/korp-frontend
     cd /korp/korp-frontend
@@ -43,10 +43,10 @@ COPY ./gtweb2_config/translations/* /korp/korp-frontend/app/translations
 
 # Change the logo, by copying in the logo, and a patch to change file soruce
 # code to use this logo
-COPY ./gt_image.patch /korp/korp-frontend
-COPY ./giellatekno_logo_official.svg /korp/korp-frontend/app/img/giellatekno_logo_official.svg
-WORKDIR /korp/korp-frontend
-RUN -p0 patch <gt_image.patch
+COPY ./logo_change/gt_image.patch /korp/korp-frontend
+COPY ./logo_change/giellatekno_logo_official.svg /korp/korp-frontend/app/img/giellatekno_logo_official.svg
+WORKDIR /korp/korp-frontend/
+RUN patch -p1 <gt_image.patch
 """
 
 DOCKERFILE_FRONTEND = """
@@ -222,7 +222,7 @@ def run_back(lang, cwbfiles):
         f"-p {port_of('back', lang)}:1234 "
         f"-v {cwd}/gtweb2_config/config.py:/korp/korp-backend/instance/config.py "
         f"-v {cwd}/gtweb2_config/corpus_configs/{lang}:/corpora/corpus_config "
-        f"-v {cwbfiles}:/corpora/gt_cwb"
+        f"-v {cwbfiles}:/corpora"
     )
     run_cmd(f"podman run {args} korp-backend")
 
@@ -317,6 +317,7 @@ if __name__ == "__main__":
             run_front(lang, backend)
         case Args("run", "back", cwbfiles=None) as args:
             print("Need to specify --cwbfiles <path to built cwb files>")
+            print("anders: locally I use /home/anders/misc/cwb/corpora/gt_cwb/registry/")
         case Args("run", "back", lang, cwbfiles) as args:
             run_back(lang, cwbfiles)
         case Args("push", "back"):

@@ -2,13 +2,13 @@ id: fkv_bible_20210319
 title:
   eng: Religion texts
   nob: Religiøse tekster
-  sme: SME Religion texts
-  fin: FIN Religion texts
+  sme: Oskkoldatlaš teavsttat
+  fin: Uskonnolliset tekstit
 description:
   eng: Texts on religion
-  nob: NOB Texts on religion
-  sme: SME Texts on religion
-  fin: FIN Texts on religion
+  nob: Religiøse tekster
+  sme: Teavsttat oskku birra
+  fin: Uskonnolliset tekstit
 mode:
   - name: default
 pos_attributes:

@@ -1,5 +1,5 @@
 diff --git a/app/scripts/components/app-header.ts b/app/scripts/components/app-header.ts
-index 9b09b812..47c8c0f0 100644
+index 9b09b812..ade16757 100644
 --- a/app/scripts/components/app-header.ts
 +++ b/app/scripts/components/app-header.ts
 @@ -3,8 +3,7 @@ import angular, { IController, IScope, ITimeoutService, ui } from "angular"
@@ -12,7 +12,7 @@ index 9b09b812..47c8c0f0 100644
  import guLogo from "../../img/gu_logo_sv_head.svg"
  import settings from "@/settings"
  import currentMode from "@/mode"
-@@ -131,11 +130,10 @@ angular.module("korpApp").component("appHeader", {
+@@ -131,15 +130,14 @@ angular.module("korpApp").component("appHeader", {
  
                  <a
                      class="hidden min-[1150px]:flex h-20 shrink flex-col justify-end"
@@ -25,4 +25,10 @@ index 9b09b812..47c8c0f0 100644
 +                    <img src="${gtLogo}" />
                  </a>
  
-                 <a class="hidden xl:block shrink-0 h-32 -mt-2" href="https://gu.se/" target="_blank">
+-                <a class="hidden xl:block shrink-0 h-32 -mt-2" href="https://gu.se/" target="_blank">
+-                    <img src="${guLogo}" class="h-full" />
++                <a class="hidden xl:block shrink-0 h-32 -mt-2" href="https://giellatekno.uit.no/" target="_blank">
++                    <img src="${gtLogo}" class="h-full" />
+                 </a>
+             </div>
+         </div>

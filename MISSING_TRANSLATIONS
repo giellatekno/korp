@@ -3,6 +3,9 @@ the commands:
 cd gtweb2_config/corpus_configs
 rg -IN SME | sort | uniq
 
+  eng: A collection of legislative texts
+  nob: Ei samling av lovtekster
+
 gives us this list of missing translations for SME:
 
   eng: A collection of legislative texts
@@ -49,17 +52,42 @@ gives us this list of missing translations for SME:
 Same command, but replace SME with FIN, gives these missing translations for
 FIN:
 
+  eng: Law texts
   fin: Lakitekstit
+
   fin: Raamattutekstit
+  eng: Bible texts
+
   fin: Ersän tekstit
+  eng: Erzya texts
+
   fin: Vuorimarin tekstit
+  eng: 
+
   fin: Komipermjakin tekstit
+  eng: Komi-Permyak texts
+
   fin: Komisyrjäänin texts
+  eng: Komi-Zyrian texts
+
   fin: Lakitekstit
+  eng: Law texts
+
+  eng: A collection of legislative texts
+  fin: Lakitekstien kokoelma
+
   fin: Kaunokirjallisuus
+  eng: Fiction texts
+
   fin: Niitymarin tekstit
+  eng: Meadow Mari texts
+
   fin: Mokšan tekstit
+  eng: Moksha
+
   fin: Uskonnolliset tekstit
+  eng: Religion texts
+
   fin: Tekstit uskonnosta
   fin: Udmurtin tekstit
 
