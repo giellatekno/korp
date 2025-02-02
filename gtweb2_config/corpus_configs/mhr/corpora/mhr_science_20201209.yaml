@@ -10,7 +10,7 @@ description:
   nob: Ei samling av vitenskaplige tekster, f.eks. master- og doktoravhandlinger eller artikler
   sme: Dieđalaš teavsttaid čoakkáldat, nákkosgirjjit, masterbarggut ja artihkkalat
   fin: Tieteellisten tekstien kokoelma, väitöskirjat, gradut ja tieteelliset artikkelit
-  rus: коллекция научных текстов, таких как магистерские диссертации, докторские диссертации и статьи
+  rus: Коллекция научных текстов, таких как магистерские диссертации, докторские диссертации и статьи
 mode:
   - name: default
 pos_attributes:
