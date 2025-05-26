@@ -1,0 +1,3 @@
+repo for rewriting old to new style settings of korp frontend
+
+https://github.com/spraakbanken/korp-frontend-settings-rewrite/
