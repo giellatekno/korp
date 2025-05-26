@@ -8,6 +8,7 @@ tasks.py <front|back> <smi|nsu|other> <build|push|runlocal|bap>
 import argparse
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 ACR = "gtlabcontainerregistry.azurecr.io"
 INSTANCES = ["smi", "nsu", "other"]
@@ -26,7 +27,7 @@ def port_of(frontorback, lang):
     return port
 
 
-DOCKERFILE_FRONTEND_BASE = """
+DOCKERFILE_FRONTEND_BASE = r"""
 FROM docker.io/library/debian:bookworm AS builder
 RUN <<EOF
     set -eux
@@ -48,6 +49,9 @@ COPY ./logo_change/giellatekno_logo_official.svg /korp/korp-frontend/app/img/gie
 COPY ./logo_change/UiT_Segl_Eng_Sort_960px.png /korp/korp-frontend/app/img/UiT_Segl_Eng_Sort_960px.png
 WORKDIR /korp/korp-frontend/
 RUN patch -p1 <gt_image.patch
+
+# Add 1000 to the list of options for how many search results per hit the user can see
+RUN sed --in-place -e "s/hits_per_page_values:\s*\[[^\]\+\]/hits_per_page_values: \[25, 50, 75, 100, 1000\]/" app/scripts/settings/index.ts
 """
 
 DOCKERFILE_FRONTEND = """
@@ -211,18 +215,19 @@ def run_front(lang, backend):
     )
 
 
-def run_back(lang, cwbfiles):
+def run_back(lang, cwbfiles, korp_config=None):
     assert lang in LANGS
     assert isinstance(cwbfiles, str)
-    print(lang, cwbfiles)
     cwd = os.getcwd()
+    if korp_config is None:
+        korp_config = f"{cwd}/gtweb2_config/corpus_configs/{lang}"
     args = (
         f"--name korp-backend-{lang} "
         "--rm "
         "--replace "
         f"-p {port_of('back', lang)}:1234 "
         f"-v {cwd}/gtweb2_config/config.py:/korp/korp-backend/instance/config.py "
-        f"-v {cwd}/gtweb2_config/corpus_configs/{lang}:/corpora/corpus_config "
+        f"-v {korp_config}:/corpora/corpus_config "
         f"-v {cwbfiles}:/corpora"
     )
     run_cmd(f"podman run {args} korp-backend")
@@ -265,6 +270,7 @@ class Args:
     lang: str
     cwbfiles: str
     backend: str
+    korp_config: Path
 
 
 def parse_args():
@@ -272,6 +278,13 @@ def parse_args():
     parser.add_argument("args", nargs="*")
     parser.add_argument("--cwbfiles")
     parser.add_argument("--backend")
+    parser.add_argument(
+        "--korp-config",
+        help=(
+            "directory where the backend korp config dir is (used "
+            "with run back)"
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -293,12 +306,16 @@ def parse_args():
                 parser.error("can only give one command")
             cmd = arg
 
+    if lang is None:
+        parser.error("missing lang")
+
     return Args(
         cmd=cmd,
         frontorback=frontorback,
         lang=lang,
         cwbfiles=args.cwbfiles,
         backend=args.backend,
+        korp_config=args.korp_config,
     )
 
 
@@ -319,8 +336,8 @@ if __name__ == "__main__":
         case Args("run", "back", cwbfiles=None) as args:
             print("Need to specify --cwbfiles <path to built cwb files>")
             print("anders: locally I use /home/anders/misc/cwb/corpora/gt_cwb/registry/")
-        case Args("run", "back", lang, cwbfiles) as args:
-            run_back(lang, cwbfiles)
+        case Args("run", "back", lang, cwbfiles, _backend, korp_config) as args:
+            run_back(lang, cwbfiles, korp_config)
         case Args("push", "back"):
             push_back()
         case Args("push", "front", lang=None):
