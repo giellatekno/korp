@@ -3,6 +3,13 @@
 """Common tasks for Korp.
 
 tasks.py <front|back> <smi|nsu|other> <build|push|runlocal|bap>
+
+There is no special handling of "all" languages, to do the same tasks for
+every lang. Instead, sh scripting, e.g.:
+
+for lang in sma sme smj smn sms koi kpv mdf mhr mrj myv udm fao fit fkv olo vep vro; do
+    uv run tasks.py build front $lang;
+done
 """
 
 import argparse
