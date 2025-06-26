@@ -104,11 +104,6 @@ ENTRYPOINT [ "/entry.sh" ]
 CMD ["nginx", "-g", "daemon off;"]
 """
 
-
-# TODO use locally downloaded cwb_3.5.0-1_amd64.deb instead of getting it
-# from sourceforge. It's only 450k, and it's nice to not have to rely on
-# anyone to get it
-
 DOCKERFILE_BACKEND = """
 FROM docker.io/library/debian:bookworm AS builder
 
@@ -122,10 +117,11 @@ RUN set -eux && \
         python3 python3-venv python3-pip python3-dev \
         default-libmysqlclient-dev libglib2.0-0 libpcre3
 
-# CWB
-RUN set -eux && \
-    curl --location --silent --show-error --create-dirs --output-dir /cwb --remote-name https://downloads.sourceforge.net/project/cwb/cwb/cwb-3.5/deb/cwb_3.5.0-1_amd64.deb && \
-    dpkg -i $(find /cwb -name "*.deb")
+# Corpus WorkBench (CWB)
+# RUN set -eux && \
+#    curl --location --silent --show-error --create-dirs --output-dir /cwb --remote-name https://downloads.sourceforge.net/project/cwb/cwb/cwb-3.5/deb/cwb_3.5.0-1_amd64.deb
+COPY cwb_3.5.0-1_amd64.deb /cwb/
+RUN dpkg -i /cwb/cwb_3.5.0-1_amd64.deb
 
 # Memcached server ? MariaDB Server?
 
@@ -137,6 +133,11 @@ RUN set -eux && \
 
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+
+# fix for bug that recently appeared when starting gunicorn:
+# "pkg_resources.DistributionNotFound: The 'zope.event' distribution was not found and is required by the application"
+RUN sed --in-place 's/gevent.*/gevent~=25.5/' /korp/korp-backend/requirements.txt
+
 RUN pip install --disable-pip-version-check --requirement /korp/korp-backend/requirements.txt
 RUN pip install gunicorn
 
@@ -222,7 +223,7 @@ def run_front(lang, backend):
     )
 
 
-def run_back(lang, cwbfiles, korp_config=None):
+def run_back(lang, cwbfiles, korp_config=None, custom_run_cmd=None):
     assert lang in LANGS
     assert isinstance(cwbfiles, str)
     cwd = os.getcwd()
@@ -237,7 +238,11 @@ def run_back(lang, cwbfiles, korp_config=None):
         f"-v {korp_config}:/corpora/corpus_config "
         f"-v {cwbfiles}:/corpora"
     )
-    run_cmd(f"podman run {args} korp-backend")
+    if custom_run_cmd is None:
+        custom_run_cmd = ""
+    else:
+        args = f"{args} -it"
+    run_cmd(f"podman run {args} korp-backend {custom_run_cmd}")
 
 
 def push_front(lang):
@@ -278,6 +283,8 @@ class Args:
     cwbfiles: str
     backend: str
     korp_config: Path
+    # for giving a custom CMD to the run command when running a container
+    custom_run_cmd: str
 
 
 def parse_args():
@@ -285,6 +292,10 @@ def parse_args():
     parser.add_argument("args", nargs="*")
     parser.add_argument("--cwbfiles")
     parser.add_argument("--backend")
+    parser.add_argument(
+        "--custom-run-cmd",
+        help="override the Containerfile CMD (only for 'run' command)",
+    )
     parser.add_argument(
         "--korp-config",
         help=(
@@ -323,6 +334,7 @@ def parse_args():
         cwbfiles=args.cwbfiles,
         backend=args.backend,
         korp_config=args.korp_config,
+        custom_run_cmd=args.custom_run_cmd,
     )
 
 
@@ -343,6 +355,8 @@ if __name__ == "__main__":
         case Args("run", "back", cwbfiles=None) as args:
             print("Need to specify --cwbfiles <path to built cwb files>")
             print("anders: locally I use /home/anders/misc/cwb/corpora/gt_cwb/registry/")
+        case Args("run", "back", lang, cwbfiles, custom_run_cmd=custom_run_cmd) as args:
+            run_back(lang, cwbfiles, custom_run_cmd=custom_run_cmd)
         case Args("run", "back", lang, cwbfiles, _backend, korp_config) as args:
             run_back(lang, cwbfiles, korp_config)
         case Args("push", "back"):
