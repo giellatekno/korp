@@ -1,0 +1,7 @@
+order: 3
+label:
+  eng: dephead
+  nob: dephead (nob)
+  sme: dephead (sme)
+  fin: dephead (fin)
+extended_component: datasetSelect
