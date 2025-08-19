@@ -14,12 +14,12 @@ mode:
   - name: default
 pos_attributes:
   - pos: pos
-  - lemma: lemma
   - msd: msd
-  - word: word
-  - ref: ref
-  - deprel: deprel
+  - lemma: lemma
   - dephead: dephead
+  - deprel: deprel
+  - ref: ref
+  - word: word
 struct_attributes:
   - text_title: text_title
   - text_date: text_date
