@@ -1,9 +1,9 @@
+order: 4
 label:
   eng: dependency relation
   nob: dependensrelasjon
-  sme: dependeansa
-  fin: dependenssisuhde
-  rus: отношение зависимости
+  sme: Dependeansa
+  fin: Dependenssisuhde
 extended_component: datasetSelect
 dataset:
   "→A"        :    "→A"
