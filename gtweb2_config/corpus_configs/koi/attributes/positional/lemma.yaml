@@ -1,11 +1,10 @@
-order: 1
+order: 2
 name: lemma
 label:
   eng: Base form
   nob: Grunnform
   sme: Vuođđohápmi
   fin: Perusmuoto
-  rus: начальная форма
 extended_template: <input ng-model='input' escaper>
 opts:
   contains: '_='

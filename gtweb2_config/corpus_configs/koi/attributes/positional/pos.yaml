@@ -5,7 +5,6 @@ label:
   nob: Ordklasse
   sme: Sátneluohkká
   fin: Sanaluokka
-  rus: Часть речи
 dataset:
   A: A
   N: N
@@ -38,124 +37,103 @@ translation:
     nob: adjektiv
     sme: adjektiiva
     fin: adjektiivi
-    rus: имя прилагательное
   N:
     eng: noun
     nob: substantiv
     sme: substantiiva
     fin: substantiivi
-    rus: существительное
   V:
     eng: verb
     nob: verb
     sme: vearba
     fin: verbi
-    rus: глагол
   Adv:
     eng: adverb
     nob: adverb
     sme: advearba
     fin: adverbi
-    rus: наречие
   Po:
     eng: postposition
     nob: postposisjon
     sme: postposišuvdna
     fin: postpositio
-    rus: послелог
   Pr:
     eng: preposition
     nob: preposisjon
     sme: preposišuvdna
     fin: prepositio
-    rus: предлог
   Pron:
     eng: pronoun
     nob: pronomen
     sme: pronomena
     fin: pronomini
-    rus: местоимение
   Det:
     eng: determinative
     nob: determinativ
     sme: determinative
     fin: determinatiivi
-    rus: детерминатив
   Num:
     eng: numeral
     nob: numeral
     sme: numerála
     fin: numeraali
-    rus: цифра
   Cmp_SplitR:
     eng: right side of a compound
     nob: høyre side av sammensetning
     sme: goallosteami olgeš bealli
     fin: yhdyssanan oikea puoli
-    rus: правая часть составного слова
   Cmp_Sh:
     eng: compound short form
     nob: kortform-sammensetning
     sme: goallosteami otnon hápmi
     fin: yhdyssanan lyhennetty muoto
-    rus: краткая форма составного слова 
   CmpNP_First:
     eng: compound part
     nob: del av sammensetning
     sme: goallosteami hápmi
     fin: yhdyssana
-    rus: часть составного слова
   CmpNP_None:
     eng: compound part
     nob: del av sammensetning
     sme: goallosteami hápmi
     fin: yhdyssana
-    rus: часть составного слова
   Cmp_SgNom:
     eng: singular nominative compound
     nob: entall-nominativ-sammensetning
     sme: ovttaidlogu-nominatiiva-goallosteapmi
     fin: yksikön nominatiivi yhdyssanan etuosana
-    rus: Ед.ч. им.п. составного слова
   Pcle:
     eng: particle
     nob: partikkel
     sme: partihkal
     fin: partikkeli
-    rus: частица
   PUNCT:
     eng: punctuation
     nob: interpunksjon
     sme: mearka cealkaga siste
     fin: välimerkki
-    rus: пунктуация в предложении
   CC:
     eng: conjunction
     nob: konjunksjon
     sme: konjunkšuvdna
     fin: konjunktio
-    rus: сочинительный союз
   Interj:
     eng: interjection
     nob: interjeksjon
     sme: interjekšuvdna
     fin: interjektio
-    rus: междометие
   CS:
     eng: subjunction
     nob: subjunksjon
     sme: subjunkšuvdna
     fin: subjunktio
-    rus: подчинительный союз
   CLB:
     eng: clause boundary
     nob: setningsgrensemerke
     sme: cealkkaráji mearka
     fin: lauserajan merkki
-    rus: пунктуация в конце предложения
   ___:
     eng: unknown
     nob: ukjent
     sme: dovddatmeahttun
     fin: tuntematon
-    rus: неизвестный
