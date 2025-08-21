@@ -12,9 +12,13 @@ description:
 mode:
   - name: smn
 pos_attributes:
-  - lemma: lemma
   - pos: pos
   - msd: msd
+  - lemma: lemma
+  - dephead: dephead
+  - deprel: deprel
+  - ref: ref
+  - word: word
 struct_attributes:
   - text_title: text_title
 context:
