@@ -1,10 +1,9 @@
-order: 3
+order: 1
 label:
   eng: Grammatical analysis
   nob: Grammatisk analyse
   sme: Sojahananalysa
   fin: Morfologinen analyysi
-  rus: грамматический анализ
 opts:
   contains: '_='
   ends_with: '&='
