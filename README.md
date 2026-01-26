@@ -10,13 +10,13 @@ File listing of this repository:
 github.com/giellatekno/korp  (this repository)
   README.md              - this file
   tasks.py               - script to build and push images, and run them locally
-  gtweb2_korp_settings/
+  gtweb2_config/
     translations/        - translations needed by the frontend,
                            will be built into the image (same for all instances)
     front/
       config-LANG.yam    - frontend config, will be built into the image
                            (one file per LANG)
-    corpus_config/       - backend config (one folder per LANG)
+    corpus_configs/      - backend config (one folder per LANG)
       LANG/              
         attributes/
           structural/    - contains metadata fields of the corpora,
@@ -29,11 +29,12 @@ github.com/giellatekno/korp  (this repository)
         modes/           - each "sub-corp". So we could have one for the
                            default korp for that language. one for historical
                            corpora, one for parallell, etc. språkbanken
-                           uses modes for separating them corpora like that.
+                           uses modes for separating the corpora like that.
   selector-page/
     index.html           - simple page with links to the various korp sites
                            visible at https://gtweb-02.uit.no/korp/
                            deployed as a static site in /var/www/html
+  logo_change/           - logos
 ```
 
 
