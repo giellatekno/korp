@@ -7,11 +7,11 @@ label:
   fin: Perusmuoto
 extended_template: <input ng-model='input' escaper>
 opts:
-  contains: '_='
-  ends_with: '&='
   is: '='
   is_not: '!='
+  contains: '_='
   matches: '*='
   matches_not: '!*='
   starts_with: '^='
+  ends_with: '&='
 #type: set
