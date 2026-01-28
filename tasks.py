@@ -35,16 +35,14 @@ def port_of(frontorback, lang):
 
 
 DOCKERFILE_FRONTEND_BASE = r"""
-FROM docker.io/library/debian:bookworm AS builder
-RUN <<EOF
-    set -eux
-    apt-get update
-    apt-get install -y --no-install-recommends git nginx npm patch
-    npm install --global yarn
-    git clone --branch master --depth 1 https://github.com/spraakbanken/korp-frontend.git /korp/korp-frontend
-    cd /korp/korp-frontend
+FROM docker.io/library/debian:trixie AS builder
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends git nginx npm patch curl && \
+    npm install --global yarn && \
+    git clone --branch master --depth 1 https://github.com/spraakbanken/korp-frontend.git /korp/korp-frontend && \
+    cd /korp/korp-frontend && \
     yarn
-EOF
 
 # Translation files are the same for all instances
 COPY ./gtweb2_config/translations/* /korp/korp-frontend/app/translations
@@ -55,7 +53,7 @@ COPY ./logo_change/gt_image.patch /korp/korp-frontend
 COPY ./logo_change/giellatekno_logo_official.svg /korp/korp-frontend/app/img/giellatekno_logo_official.svg
 COPY ./logo_change/UiT_Segl_Eng_Sort_960px.png /korp/korp-frontend/app/img/UiT_Segl_Eng_Sort_960px.png
 WORKDIR /korp/korp-frontend/
-RUN patch -p1 <gt_image.patch
+# No longer done like this RUN patch -p1 < gt_image.patch
 
 # Add 1000 to the list of options for how many search results per hit the user can see
 RUN sed --in-place -e "s/hits_per_page_values:\s*\[[^\]\+\]/hits_per_page_values: \[25, 50, 75, 100, 1000\]/" app/scripts/settings/index.ts
@@ -85,12 +83,10 @@ COPY --from=builder /korp/korp-frontend/dist /usr/share/nginx/html/
 
 RUN grep -l "korp_backend_url:[ ]\\?\\"[^\\"]\\+\\"" /usr/share/nginx/html/*.js > /js_file
 
-RUN <<EOF
-if [ $(wc -l </js_file) -ne 1 ]; then
-    echo "IMAGE BUILD ERROR: Cannot find .js file with defintion of korp_backend_url, cannot continue."
-    exit 1;
+if [ $(wc -l </js_file) -ne 1 ]; then \
+    echo "IMAGE BUILD ERROR: Cannot find .js file with defintion of korp_backend_url, cannot continue." \
+    exit 1; \
 fi
-EOF
 
 RUN echo '#!/bin/bash' > /entry.sh
 RUN echo 'if [ ! -v BACKEND ]; then' >>/entry.sh
@@ -105,7 +101,7 @@ CMD ["nginx", "-g", "daemon off;"]
 """
 
 DOCKERFILE_BACKEND = """
-FROM docker.io/library/debian:bookworm AS builder
+FROM docker.io/library/debian:trixie AS builder
 
 # anders: we have to install headers for pypi mysqlclient to be able to build
 # https://github.com/PyMySQL/mysqlclient/tree/main#linux
@@ -143,7 +139,7 @@ RUN pip install gunicorn
 
 
 
-FROM docker.io/library/debian:bookworm
+FROM docker.io/library/debian:trixie
 
 RUN set -eux; \
     apt-get update; \
