@@ -113,7 +113,7 @@ FROM docker.io/library/debian:bookworm AS builder
 RUN set -eux && \
     apt-get update && \
     apt-get install --no-install-recommends -y \
-        git curl build-essential \
+        git curl build-essential pkg-config \
         python3 python3-venv python3-pip python3-dev \
         default-libmysqlclient-dev libglib2.0-0 libpcre3
 
@@ -323,9 +323,6 @@ def parse_args():
             if cmd is not None:
                 parser.error("can only give one command")
             cmd = arg
-
-    if lang is None:
-        parser.error("missing lang")
 
     return Args(
         cmd=cmd,
