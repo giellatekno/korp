@@ -24,7 +24,7 @@ LANGS = [
     "kpv", "mdf", "mhr", "mrj", "myv", "udm",
     "fao", "fit", "fkv", "olo", "vep", "vro",
 ]
-CMDS = ["build", "push", "sync-settings", "run", "bap"]
+CMDS = ["build", "build-cwb", "push", "sync-settings", "run", "bap"]
 
 
 def port_of(frontorback, lang):
@@ -34,98 +34,25 @@ def port_of(frontorback, lang):
     return port
 
 
-DOCKERFILE_FRONTEND_BASE = r"""
-FROM docker.io/library/debian:trixie AS builder
-RUN set -eux && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends git nginx npm patch curl && \
-    npm install --global yarn && \
-    git clone --branch master --depth 1 https://github.com/spraakbanken/korp-frontend.git /korp/korp-frontend && \
-    cd /korp/korp-frontend && \
-    yarn
-
-# Translation files are the same for all instances
-COPY ./gtweb2_config/translations/* /korp/korp-frontend/app/translations
-
-# Change the logo, by copying in the logo, and a patch to change file soruce
-# code to use this logo
-COPY ./logo_change/gt_image.patch /korp/korp-frontend
-COPY ./logo_change/giellatekno_logo_official.svg /korp/korp-frontend/app/img/giellatekno_logo_official.svg
-COPY ./logo_change/UiT_Segl_Eng_Sort_960px.png /korp/korp-frontend/app/img/UiT_Segl_Eng_Sort_960px.png
-WORKDIR /korp/korp-frontend/
-# No longer done like this RUN patch -p1 < gt_image.patch
-
-# Add 1000 to the list of options for how many search results per hit the user can see
-RUN sed --in-place -e "s/hits_per_page_values:\s*\[[^\]\+\]/hits_per_page_values: \[25, 50, 75, 100, 1000\]/" app/scripts/settings/index.ts
-"""
-
-DOCKERFILE_FRONTEND = """
-FROM korp-frontend-base AS builder
-
-ARG instance
-
-COPY ./gtweb2_config/front/config-${instance}.yaml /korp/korp-frontend/app/config.yml
-RUN mkdir -p /korp/korp-frontend/app/modes
-
-# yarn build failed on this file not being present, with "invalid syntax",
-# because some file did a require() on this, which some earlier part of the
-# build process replaced with some non-js text about the file not being
-# found.
-RUN touch /korp/korp-frontend/app/modes/default_mode.js
-WORKDIR /korp/korp-frontend
-RUN yarn build
-
-
-FROM docker.io/library/nginx
-
-#COPY ./korp-nginx-frontend.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /korp/korp-frontend/dist /usr/share/nginx/html/
-
-RUN grep -l "korp_backend_url:[ ]\\?\\"[^\\"]\\+\\"" /usr/share/nginx/html/*.js > /js_file
-
-if [ $(wc -l </js_file) -ne 1 ]; then \
-    echo "IMAGE BUILD ERROR: Cannot find .js file with defintion of korp_backend_url, cannot continue." \
-    exit 1; \
-fi
-
-RUN echo '#!/bin/bash' > /entry.sh
-RUN echo 'if [ ! -v BACKEND ]; then' >>/entry.sh
-RUN echo '  echo "Fatal: env var BACKEND is not set"' >>/entry.sh
-RUN echo 'fi' >>/entry.sh
-RUN echo 'sed -i "s,korp_backend_url:[ ]\\?\\"[^\\"]\\+\\",korp_backend_url: \\"${BACKEND}\\","' "$(cat /js_file)" >>/entry.sh
-RUN echo 'exec "$@"' >>/entry.sh
-RUN chmod +x /entry.sh
-
-ENTRYPOINT [ "/entry.sh" ]
-CMD ["nginx", "-g", "daemon off;"]
-"""
-
-DOCKERFILE_BACKEND = """
+CONTAINERFILE_BACKEND = """
 FROM docker.io/library/debian:trixie AS builder
 
 # anders: we have to install headers for pypi mysqlclient to be able to build
 # https://github.com/PyMySQL/mysqlclient/tree/main#linux
+
+# TODO: Memcached server ? MariaDB Server?
 
 RUN set -eux && \
     apt-get update && \
     apt-get install --no-install-recommends -y \
         git curl build-essential pkg-config \
         python3 python3-venv python3-pip python3-dev \
-        default-libmysqlclient-dev libglib2.0-0 libpcre3
-
-# Corpus WorkBench (CWB)
-# RUN set -eux && \
-#    curl --location --silent --show-error --create-dirs --output-dir /cwb --remote-name https://downloads.sourceforge.net/project/cwb/cwb/cwb-3.5/deb/cwb_3.5.0-1_amd64.deb
-COPY cwb_3.5.0-1_amd64.deb /cwb/
-RUN dpkg -i /cwb/cwb_3.5.0-1_amd64.deb
-
-# Memcached server ? MariaDB Server?
+        default-libmysqlclient-dev libglib2.0-0
 
 WORKDIR /korp
 
 RUN set -eux && \
     git clone --depth 1 https://github.com/spraakbanken/korp-backend.git
-    #git clone --branch giellatekno --single-branch --depth 1 https://github.com/giellatekno/korp-backend.git /korp/korp-backend
 
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -143,7 +70,7 @@ FROM docker.io/library/debian:trixie
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install --no-install-recommends -y python3 libmariadb3 libglib2.0-0 libpcre3
+    apt-get install --no-install-recommends -y python3 libmariadb3 libglib2.0-0
 
 # the created virtual environment, with all requirements installed
 COPY --from=builder /opt/venv /opt/venv
@@ -152,12 +79,20 @@ COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /korp/korp-backend /korp/korp-backend
 
 # the CWB binaries we need
-COPY --from=builder /usr/bin/cqp /usr/bin/cqp
-COPY --from=builder /usr/bin/cwb-scan-corpus /usr/bin/cwb-scan-corpus
-COPY --from=builder /usr/lib/libcl.so /usr/lib/libcl.so
+COPY --from=cwb /tmp/cwb-{CWB_VERSION}-linux-x86_64.tar.gz /cwb/cwb-{CWB_VERSION}-linux-x86_64.tar.gz
+RUN tar --directory /cwb -zxvf /cwb/cwb-{CWB_VERSION}-linux-x86_64.tar.gz
+RUN cp -r /cwb/cwb-{CWB_VERSION}-linux-x86_64/bin/* /usr/bin
+RUN cp -r /cwb/cwb-{CWB_VERSION}-linux-x86_64/lib/libcl.so /usr/lib/libcl.so
+#COPY --from=builder /usr/bin/cqp /usr/bin/cqp
+#COPY --from=builder /usr/bin/cwb-scan-corpus /usr/bin/cwb-scan-corpus
+#COPY --from=builder /usr/lib/libcl.so /usr/lib/libcl.so
+
+# Some korp or cwb process needs "gawk" exactly, "awk" isn't good enough for them.
+RUN ln -s /usr/bin/awk /usr/bin/gawk
 
 # This essentially activates the virutal environment
 ENV PATH="/opt/venv/bin:$PATH"
+#ENV PYTHONPATH="/opt/venv/lib"
 
 WORKDIR /korp/korp-backend
 CMD ["gunicorn", "--worker-class", "gevent", "--bind", "0.0.0.0:1234", "--workers", "4", "--max-requests", "250", "--limit-request-line", "0", "run:create_app()" ]
@@ -177,38 +112,92 @@ def run_cmd(cmd, *args, **kwargs):
     print(" ".join(cmd))
 
     try:
-        run(cmd, **kwargs)
+        return run(cmd, **kwargs)
     except KeyboardInterrupt:
         pass
 
 
+def build_cwb():
+    cmd = "podman build -t cwb -f containerfiles/Containerfile.cwb"
+    run_cmd(cmd, encoding="utf-8")
+    # tag with version number that we just built
+    proc = run_cmd("podman run --rm cwb cat /tmp/VERSION", capture_output=True)
+    cwb_version = proc.stdout.decode("utf-8").strip()
+    run_cmd(f"podman image tag cwb cwb:{cwb_version}")
+
+
+def build_frontend_base():
+    print("Building korp-frontend-base image")
+    cwd = os.getcwd()
+    tag = "korp-frontend-base"
+    containerfile = "containerfiles/Containerfile.frontend-base"
+    run_cmd(f"podman build -t {tag} -f {containerfile} {cwd}")
+
+
 def build_front(lang):
     assert isinstance(lang, str)
-    print("Building korp-frontend-base image")
-    cmd = (
-        "podman build "
-        "-t korp-frontend-base "
-        f"-f - {os.getcwd()}"
-    )
-    run_cmd(cmd, input=DOCKERFILE_FRONTEND_BASE, encoding="utf-8")
+    build_frontend_base()
+    cwd = os.getcwd()
+    tag = f"korp-frontend-{lang}"
+    containerfile = "containerfiles/Containerfile.frontend"
 
     cmd = (
         "podman build "
-        f"-t korp-frontend-{lang} "
+        f"-t {tag} "
         f"--build-arg=instance={lang} "
-        f"-f - {os.getcwd()}"
+        f"-f {containerfile} {cwd}"
     )
-    run_cmd(cmd, input=DOCKERFILE_FRONTEND, encoding="utf-8")
+    run_cmd(cmd, encoding="utf-8")
 
 
 def build_back():
+    import json
+    from functools import cmp_to_key
+    cmd = "podman image list --format json --filter=reference=cwb"
+    proc = run_cmd(cmd, capture_output=True)
+    stdout = proc.stdout.decode("utf-8")
+    try:
+        images = json.loads(stdout)
+    except Exception as e:
+        print(f"error json-parsing output from cmd: {cmd}")
+        print(e)
+        raise
+    if not images:
+        print("Need built cwb image. Hint: run the 'build-cwb' command")
+        return
+
+    versions = []
+    for name in images[0]["Names"]:
+        if not name.startswith("localhost/cwb:"):
+            continue
+        version = name.removeprefix("localhost/cwb:")
+        if version == "latest":
+            continue
+        versions.append(version)
+
+    def compare_semver(a: str, b: str):
+        a = tuple(int(x) for x in a.split("."))
+        b = tuple(int(x) for x in b.split("."))
+        if a < b:
+            return -1
+        elif a == b:
+            return 0
+        else:
+            return 1
+
+    versions.sort(key=cmp_to_key(compare_semver))
+    cwb_version = versions[-1]
     cmd = f"podman build -t korp-backend -f - {os.getcwd()}"
-    run_cmd(cmd, input=DOCKERFILE_BACKEND, encoding="utf-8")
+    run_cmd(cmd, input=CONTAINERFILE_BACKEND.format(CWB_VERSION=cwb_version), encoding="utf-8")
 
 
 def run_front(lang, backend):
     if backend is None:
-        backend = f"http://localhost:{port_of('back', lang)}"
+        backend = f"http://127.0.0.1:{port_of('back', lang)}"
+
+    if not (backend.startswith("https://") or backend.startswith("http://")):
+        print("Error: backend must start with http:// or https://")
+        return 1
 
     run_cmd(
         "podman run --rm "
@@ -219,19 +208,54 @@ def run_front(lang, backend):
     )
 
 
-def run_back(lang, cwbfiles, korp_config=None, custom_run_cmd=None):
+def check_korp_backend_config(config_py, corpus_config, cwbfiles):
+    p = Path(config_py)
+    if not p.is_file():
+        raise Exception(f"Error: {config_py} is not a file")
+
+    p = Path(corpus_config)
+    if not p.is_dir():
+        raise Exception(f"Error: {corpus_config} is not a directory")
+    need = set(["corpora", "attributes", "modes"])
+    msg = f"Error: corpus_config directory '{corpus_config}'"
+    for f in p.iterdir():
+        if not f.is_dir():
+            raise Exception(f"{msg} contains an entry which is not a directory: {f}")
+        try:
+            need.remove(f.name)
+        except KeyError:
+            raise Exception(f"{msg} contains an unexpected directory: {f.name}")
+    if need:
+        raise Exception(f"{msg} missing the following directories: {need}")
+
+    p = Path(cwbfiles)
+    if not p.is_dir():
+        raise Exception(f"cwbfiles path '{cwbfiles}' is not a directory")
+    need = set(["data", "registry"])
+    for f in p.iterdir():
+        if f.is_dir() and f.name in need:
+            need.remove(f.name)
+    if need:
+        raise Exception(f"cwbfiles directory missing directories: {need}")
+
+
+def run_back(lang, cwbfiles, corpus_config=None, custom_run_cmd=None):
     assert lang in LANGS
     assert isinstance(cwbfiles, str)
     cwd = os.getcwd()
-    if korp_config is None:
-        korp_config = f"{cwd}/gtweb2_config/corpus_configs/{lang}"
+    if corpus_config is None:
+        corpus_config = f"{cwd}/gtweb2_config/corpus_configs/{lang}"
+
+    config_py = f"{cwd}/gtweb2_config/config.py"
+    check_korp_backend_config(config_py, corpus_config, cwbfiles)
+
     args = (
         f"--name korp-backend-{lang} "
         "--rm "
         "--replace "
         f"-p {port_of('back', lang)}:1234 "
-        f"-v {cwd}/gtweb2_config/config.py:/korp/korp-backend/instance/config.py "
-        f"-v {korp_config}:/corpora/corpus_config "
+        f"-v {config_py}:/korp/korp-backend/instance/config.py "
+        f"-v {corpus_config}:/corpora/corpus_config "
         f"-v {cwbfiles}:/corpora"
     )
     if custom_run_cmd is None:
@@ -333,6 +357,8 @@ def parse_args():
 
 if __name__ == "__main__":
     match parse_args():
+        case Args("build-cwb"):
+            build_cwb()
         case Args("build", "front", lang=None) as args:
             print("error: build front: missing argument: lang")
             print("  give one of:", ", ".join(LANGS))
