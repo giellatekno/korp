@@ -1,4 +1,4 @@
-korp_backend_url: https://gtweb-02.uit.no/korp-backend
+korp_backend_url: https://gtweb-02.uit.no/korp/backend-myv
 languages:
   - value: sme
     label: Davvisámi
@@ -24,3 +24,11 @@ default_options:
   ends_with: '&='
   matches: '*='
   matches_not: '!*='
+hits_per_page_values:
+  - 25
+  - 50
+  - 75
+  - 100
+  - 500
+  - 1000
+default_language: eng
