@@ -174,11 +174,15 @@
     "party" : "party",
     "path" : "polku",
 
-    "add_token": "Add token",
+    "add_token": "MISSING! Add token",
 
-    "in_order_chk": "in order",
+    "in_order_chk": "MISSING! in order",
     "prefix_chk": "alkuosa",
+    "prefix_chk_help": "MISSING! Allow words that begin with the search words.",
+    "infix_chk": "MISSING! infix",
+    "infix_chk_help": "MISSING! Allow words that contain the search words.",
     "suffix_chk": "loppuosa",
+    "suffix_chk_help": "MISSING! Allow words that end with the search words.",
 
     "translated_from" : "Käännetty kielestä",
     "domain" : "Domeeni",

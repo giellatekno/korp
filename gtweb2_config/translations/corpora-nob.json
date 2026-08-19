@@ -183,8 +183,12 @@
   "add_token"           :   "Legg til token",
 
   "in_order_chk"        :   "i rekkefølge",
-  "prefix_chk"          :   "prefiks",
-  "suffix_chk"          :   "suffiks",
+  "prefix_chk"          :   "starter på",
+  "prefix_chk_help"     :   "finner ord som starter på søkeordet",
+  "infix_chk"           :   "inneholder",
+  "infix_chk_help"      :   "finner ord som inneholder søkeordet",
+  "suffix_chk"          :   "slutter på",
+  "suffix_chk_help"     :   "finner ord som slutter på søkeordet",
 
   "year_from"           :   "startår",
   "year_to"             :   "sluttår",

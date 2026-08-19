@@ -179,7 +179,11 @@
 
     "in_order_chk": "rivttes ortnegis",
     "prefix_chk": "sáni álgun",
+    "prefix_chk_help": "MISSING! Allow words that begin with the search words.",
+    "infix_chk": "MISSING! infix",
+    "infix_chk_help": "MISSING! Allow words that contain the search words.",
     "suffix_chk": "sáni loahppan",
+    "suffix_chk_help": "MISSING! Allow words that end with the search words.",
 
     "translated_from" : "Jorgaluvvon dán gielas",
     "domain" : "Domeana",
