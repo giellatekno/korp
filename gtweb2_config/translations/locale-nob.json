@@ -136,8 +136,8 @@
     "sent_end": "Slutten av setninga",
     "before_token": "første",
     "after_token": "siste",
-    "boundary_unit": "MISSING Boundary unit",
-    "add_tag_box": "MISSING Add boundary",
+    "boundary_unit": "Skille",
+    "add_tag_box": "Legg til skille",
     "starts": "begynner",
     "ends": "ender",
 
@@ -248,7 +248,7 @@
     "compare_name": "Navn",
     "compare_save": "Lagre",
     "compare_help_description": "Sammenlign to søkespørringer mot hverandre for å rangere hvilke verdier som står ut i hvert søkeresultat. Rangeringen er basert på ei log-rimelighets-beregning.",
-    "compare_help_search": "[[[MISSING! Prepare by formulating each search query in one of the search tabs and pressing the arrow next to the search button to save it. Then open the Compare tab, select the two searches, and choose an attribute to compare.]]]",
+    "compare_help_search": "Forbered ved å formulere hver søkespørring i en av søkefanene, og trykk på neste-knappen for å lagre den. Åpne så sammenligningsfanen, velg de to søkene, og velg en attributt å sammenligne.",
     "compare_distinctive": "Utmerkende for",
 
     "msd_long": "Morfosyntaktisk beskriving",
