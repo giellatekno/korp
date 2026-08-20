@@ -20,11 +20,11 @@
 
         "in_order_chk": "в порядке",
         "prefix_chk": "начальная часть",
-        "prefix_chk_help": "MISSING! Allow words that begin with the search words.",
-        "infix": "MISSING! infix",
-        "infix_chk_help": "MISSING! Allow words that begin with the search words.",
+        "prefix_chk_help": "Разрешить слова, начинающиеся с искомых слов.",
+        "infix": "внутренняя часть",
+        "infix_chk_help": "Разрешить слова, содержащие искомые слова.",
         "suffix_chk": "заключительная часть",
-        "suffix_chk_help": "MISSING! Allow words that begin with the search words.",
+        "suffix_chk_help": "Разрешить слова, оканчивающиеся на искомые слова.",
 
         "translated from" : "переведено с",
         "domain" : "домен",
