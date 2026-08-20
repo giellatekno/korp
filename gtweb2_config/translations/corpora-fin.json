@@ -174,15 +174,15 @@
     "party" : "party",
     "path" : "polku",
 
-    "add_token": "MISSING! Add token",
+    "add_token": "Lisää sane",
 
-    "in_order_chk": "MISSING! in order",
+    "in_order_chk": "järjestyksessä",
     "prefix_chk": "alkuosa",
-    "prefix_chk_help": "MISSING! Allow words that begin with the search words.",
-    "infix_chk": "MISSING! infix",
-    "infix_chk_help": "MISSING! Allow words that contain the search words.",
+    "prefix_chk_help": "Salli hakusanoilla alkavat sanat.",
+    "infix_chk": "sisäosa",
+    "infix_chk_help": "Salli sanat, jotka sisältävät hakusanat.",
     "suffix_chk": "loppuosa",
-    "suffix_chk_help": "MISSING! Allow words that end with the search words.",
+    "suffix_chk_help": "Salli hakusanoihin päättyvät sanat.",
 
     "translated_from" : "Käännetty kielestä",
     "domain" : "Domeeni",
@@ -295,4 +295,3 @@
 
     "variants" : "similar lemgram"
 }
-
