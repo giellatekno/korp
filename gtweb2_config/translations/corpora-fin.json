@@ -179,8 +179,8 @@
     "in_order_chk": "järjestyksessä",
     "prefix_chk": "alkuosa",
     "prefix_chk_help": "Salli hakusanoilla alkavat sanat.",
-    "infix_chk": "sisäosa",
-    "infix_chk_help": "Salli sanat, jotka sisältävät hakusanat.",
+    "midfix_chk": "sisäosa",
+    "midfix_chk_help": "Salli sanat, jotka sisältävät hakusanat.",
     "suffix_chk": "loppuosa",
     "suffix_chk_help": "Salli hakusanoihin päättyvät sanat.",
 

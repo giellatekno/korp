@@ -185,8 +185,8 @@
   "in_order_chk"        :   "i rekkefølge",
   "prefix_chk"          :   "starter på",
   "prefix_chk_help"     :   "finner ord som starter på søkeordet",
-  "infix_chk"           :   "inneholder",
-  "infix_chk_help"      :   "finner ord som inneholder søkeordet",
+  "midfix_chk"          :   "inneholder",
+  "midfix_chk_help"     :   "finner ord som inneholder søkeordet",
   "suffix_chk"          :   "slutter på",
   "suffix_chk_help"     :   "finner ord som slutter på søkeordet",
 
