@@ -96,8 +96,8 @@
     "reduce_text": "sett sammen etter",
     "word_pic_bad_search": "Ordbildet kunne ikke lages fra ditt søk. For tiden støttes bare enkle ord- og lemgramsøk.",
     "word_pic_global_filter": "Ordetbilder kan ikke kombineres med globale filtre. Slå av filterene for å fortsette.",
-    "word_pic_description": "Ordbildet viser ord som har en tendens til å forekomme sammen med søkeordet i syntaktiske relasjoner.",
-    "word_pic_result_description": "Søkeordets ordklasse avgjør hvilke relasjoner som vises. Hver liste samler ord som forekommer i de valgte korpusene og i den angitte relasjonen til søkeordet.",
+    "word_pic_description": "Ordbildet viser ord som sammenfaller syntaktisk med søkeordet.",
+    "word_pic_result_description": "Ordklassen til søkeordet bestemmer hvilke relasjoner som vises. Hver liste samler ord som forekommer i de valgte tekstsamlinger, og hvordan den relaterer til søkeordet.",
     "word_pic_show_some": "Vis opp til",
     "word_pic_hits": "treff",
 
