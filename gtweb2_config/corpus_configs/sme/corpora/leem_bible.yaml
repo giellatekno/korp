@@ -1,0 +1,31 @@
+id: leem_bible
+title:
+  eng: Religion texts
+  nob: Religiøse tekster
+  sme: Oskkoldatlaš teavsttat
+  fin: Uskonnolliset tekstit
+description:
+  eng: Texts on religion
+  nob: Religiøse tekster
+  sme: Teavsttat oskku birra
+  fin: Uskonnolliset tekstit
+mode:
+  - name: leem
+pos_attributes:
+  - word: word
+struct_attributes:
+  - text_title: text_title
+context:
+  - label:
+      eng: 1 sentence
+      nob: 1 setning
+      sme: 1 cealkka
+      fin: 1 lause
+    value: 1 sentence
+within:
+  - label:
+      eng: sentence
+      nob: setning
+      sme: cealkka
+      fin: lause
+    value: sentence

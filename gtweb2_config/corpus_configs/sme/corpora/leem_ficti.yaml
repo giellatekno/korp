@@ -1,0 +1,31 @@
+id: leem_ficti
+title:
+  eng: Fiction texts
+  nob: Skjønnlitteratur
+  sme: Čáppagirjjálašvuohta
+  fin: Kaunokirjallisuus
+description:
+  eng: A collection of fiction texts
+  nob: Ei samling av skjønnlitterære tekster
+  sme: čáppagirjjálašvuođa čoakkáldat
+  fin: Kaunokirjallisuuden kokoelma
+mode:
+  - name: leem
+pos_attributes:
+  - word: word
+struct_attributes:
+  - text_title: text_title
+context:
+  - label:
+      eng: 1 sentence
+      nob: 1 setning
+      sme: 1 cealkka
+      fin: 1 lause
+    value: 1 sentence
+within:
+  - label:
+      eng: sentence
+      nob: setning
+      sme: cealkka
+      fin: lause
+    value: sentence
