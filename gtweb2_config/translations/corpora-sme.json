@@ -179,11 +179,11 @@
 
     "in_order_chk": "rivttes ortnegis",
     "prefix_chk": "sáni álgun",
-    "prefix_chk_help": "MISSING! Allow words that begin with the search words.",
-    "midfix_chk": "MISSING! infix",
-    "midfix_chk_help": "MISSING! Allow words that contain the search words.",
+    "prefix_chk_help": "Gávdná sániid mat álget ohcansániin.",
+    "midfix_chk": "sáni siste",
+    "midfix_chk_help": "Gávdná sániid mat sisttisdollet ohcansáni.",
     "suffix_chk": "sáni loahppan",
-    "suffix_chk_help": "MISSING! Allow words that end with the search words.",
+    "suffix_chk_help": "Gávdná sániid maid loahppa lea ohcansátni.",
 
     "translated_from" : "Jorgaluvvon dán gielas",
     "domain" : "Domeana",
@@ -198,7 +198,7 @@
 
   "weekday" : "vahkkobeaivi",
 	"hashtags" : "hášgilkor",
-	"mentions" : "omnämnda",
+	"mentions" : "namuhuvvon",
 	"retweets" : "retweets",
 	"replytouser" : "vástit dása",
 	"coordinates" : "koordináhtorat",
