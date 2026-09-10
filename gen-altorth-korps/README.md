@@ -2,6 +2,23 @@
 
 A utility to process historical corpora into cwb files, ready for Korp.
 
+## Rust
+
+This application is written in Rust, and requires Rust installed on
+the system to be run. If you don't have it installed, it can be installed
+with the following command:
+
+`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+
+Or, if you are not on linux/macos/unix-like OS, or prefer other installation
+methods, see <https://rust-lang.org/learn/get-started/>.
+
+If you have Rust, make sure it's up to date, by running `rustup update`
+(or corresponding method).
+
+
+## Note on generated files
+
 The generated files will reside in a `<cwd>/generated` directory.
 Additionally, in the corpus directories, `.tokenized` files of cached
 data will be created. These can be deleted with the `clean-tokenized`
