@@ -1,0 +1,14 @@
+[package]
+name = "gen-altorth-korps"
+version = "0.1.0"
+edition = "2024"
+description = "A utility to process historical corpora into cwb files, ready for Korp."
+
+[dependencies]
+anyhow = "1.0.104"
+clap = { version = "4.6.6", features = ["derive"] }
+cmd_lib = "2.0.0"
+gtcorpusutil = { git = "https://github.com/giellatekno/gtcorpusutil", version = "0.1.9" }
+hfst = { git = "https://github.com/divvun/hfst-rs", version = "0.1.0" }
+roxmltree = "0.21.1"
+walkdir = "2.5.0"
