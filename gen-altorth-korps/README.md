@@ -47,6 +47,9 @@ command, i.e. `cargo run --release -- clean-tokenized`.
    and the output of that process cached. The cache policy can be
    overridden with `--cache-policy auto|never|require`. See `--help`
    for more information.
+
+   **Note**: When having to run tokenization (`hfst-tokenize`), it takes
+   a good amount of time, with nothing written on stdout.
 4. The metadata and tokenized body of each file is written out to
    `.vrt` files, in the `generated/vrt/` directory. One `.vrt` file
    will be written for each orthography, for each category. So, files
