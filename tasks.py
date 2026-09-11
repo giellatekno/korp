@@ -388,6 +388,9 @@ if __name__ == "__main__":
         case Args("bap", "front", lang=None):
             print("error: bap front: missing argument: lang")
             print(f"  give one of: {', '.join(LANGS)}")
+        case Args("bap", "front", lang):
+            build_front(lang)
+            push_front(lang)
         case Args("run" | "build", frontorback) as args:
             print("error: front or back?")
         case Args("sync-settings"):
