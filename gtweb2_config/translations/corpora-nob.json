@@ -163,6 +163,7 @@
 
   "id"                  :   "id",
   "url"                 :   "url",
+  "word"                :   "Ord",
   "saldo"               :   "Betydning",
   "pos"                 :   "Ordklasse",
   "msd"                 :   "Grammatisk analyse",
