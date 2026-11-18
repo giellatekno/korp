@@ -1,0 +1,15 @@
+FROM docker.io/library/debian:trixie AS builder
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends git nginx npm curl
+RUN npm install --global yarn
+# RUN git clone --branch master --depth 1 https://github.com/spraakbanken/korp-frontend.git /korp/korp-frontend && \
+# TODO TEMP TEMP using dev branch to test PR
+RUN git clone --branch dev --depth 1 https://github.com/spraakbanken/korp-frontend.git /korp/korp-frontend
+WORKDIR /korp/korp-frontend
+RUN git fetch origin pull/509/head:pr-509
+RUN git checkout pr-509
+RUN yarn
+
+# Translation files are the same for all instances
+COPY ./gtweb2_config/translations/* /korp/korp-frontend/app/translations

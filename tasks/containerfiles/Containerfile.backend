@@ -1,0 +1,101 @@
+# korp-backend (Språkbanken's, version 9, branch dev), with Corpus WorkBench.
+#
+# Build (src/main.rs does this, from the tasks/ directory):
+#
+#   podman build -t korp-backend -f containerfiles/Containerfile.backend .
+#
+# Nothing corpus-specific is in the image. At runtime it needs:
+#   /corpora        a directory with CWB's registry/ and data/ (read-only is
+#                   fine). The registry files may point anywhere: the entrypoint
+#                   rewrites their HOME and INFO lines to /corpora/data, see below.
+#   /corpus_config  korp-backend's corpus config for the instance (CORPUS_CONFIG_DIR below)
+#   other settings  as environment variables, or in a .env file mounted at
+#                   /korp/korp-backend/.env (see .env.template in korp-backend).
+#                   Environment variables take precedence over .env, so the
+#                   paths set with ENV below can't be changed from .env.
+#
+# For example, from the korp repo root:
+#
+#   podman run --rm -p 127.0.0.1:8000:8000 \
+#       -v ./cwb-data:/corpora:ro \
+#       -v ./gtweb2_config/corpus_configs/fkv:/corpus_config:ro \
+#       korp-backend:9.0.0-dev
+
+# Corpus WorkBench, compiled in its own image (sources:
+# ~/gut/giellatekno/giellatekno.azurecr.io/corpusworkbench). Its binaries are
+# in /usr/bin and libcl.so in /usr/lib; /usr/local/bin is empty there.
+FROM giellatekno.azurecr.io/corpusworkbench:3.5.1 AS cwb
+
+FROM docker.io/library/debian:trixie
+
+# - git, curl, ca-certificates: clone korp-backend
+# - build-essential, python3-dev: some Python dependencies may need compiling
+#   (TODO: compile in a builder stage, and copy only the venv into a slim image)
+# - libglib2.0-0t64, libpcre2-8-0, libreadline8t64, libatomic1: what the CWB
+#   binaries link against (`ldd /usr/bin/cqp` in the cwb image)
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        git curl ca-certificates build-essential python3 python3-dev \
+        libglib2.0-0t64 libpcre2-8-0 libreadline8t64 libatomic1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# uv, to install korp-backend's dependencies as pinned in its uv.lock
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# Use Debian's python3 (3.13; korp-backend needs >= 3.11), never download one
+ENV UV_PYTHON_DOWNLOADS=never \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
+WORKDIR /korp
+RUN git clone --depth 1 --branch dev https://github.com/spraakbanken/korp-backend
+
+# The "server" extra installs gunicorn (and uvloop). --no-dev: without the
+# dev/test dependency groups. --locked: exactly what uv.lock says.
+WORKDIR /korp/korp-backend
+RUN uv sync --locked --no-dev --extra server
+
+# The CWB binaries and library
+COPY --from=cwb /usr/bin/cqp* /usr/bin/cwb-* /usr/bin/
+COPY --from=cwb /usr/lib/libcl.so /usr/lib/libcl.so
+
+# Activates the virtual environment (so gunicorn is run directly below,
+# not through `uv run`, which would try to sync the environment at startup)
+ENV PATH="/korp/korp-backend/.venv/bin:$PATH" \
+    CQP_EXECUTABLE=/usr/bin/cqp \
+    CWB_SCAN_EXECUTABLE=/usr/bin/cwb-scan-corpus \
+    CWB_REGISTRY=/corpora/registry \
+    CORPUS_CONFIG_DIR=/corpus_config
+
+# Registry files name the data directory of their corpus with absolute paths
+# (HOME, INFO), which are wherever the corpus was built. Instead of editing the
+# files, the entrypoint copies the registry to /tmp/cwb-registry, with HOME and
+# INFO pointing to the directory of the same name under /corpora/data, and
+# points CWB_REGISTRY there. (The same trick as the corpusworkbench image's
+# entrypoint.) The mounted files are left untouched.
+COPY <<'EOF' /entrypoint.sh
+#!/bin/sh
+set -eu
+if [ -d /corpora/registry ]; then
+    registry=/tmp/cwb-registry
+    rm -rf "$registry"
+    mkdir -p "$registry"
+    for file in /corpora/registry/*; do
+        [ -f "$file" ] || continue
+        # HOME /some/path/<dir>         -> HOME /corpora/data/<dir>
+        # INFO /some/path/<dir>/<file>  -> INFO /corpora/data/<dir>/<file>
+        sed -e 's;^HOME .*/\([^/]*\)$;HOME /corpora/data/\1;' \
+            -e 's;^INFO .*/\([^/]*/[^/]*\)$;INFO /corpora/data/\1;' \
+            "$file" > "$registry/$(basename "$file")"
+    done
+    export CWB_REGISTRY="$registry"
+    echo "entrypoint.sh: $(ls "$registry" | wc -l) registry files from /corpora/registry, data in /corpora/data"
+else
+    echo "entrypoint.sh: WARNING: /corpora/registry not found, using CWB_REGISTRY=$CWB_REGISTRY as is"
+fi
+exec "$@"
+EOF
+RUN chmod 755 /entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["gunicorn", "korp.main:app", "--worker-class", "asgi", "--bind", "0.0.0.0:8000", "--workers", "4"]

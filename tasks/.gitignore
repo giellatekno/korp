@@ -1,0 +1,5 @@
+/target/
+/html/
+.CLOUDFLARE_API_TOKEN
+s3_compat_credentials
+xxx
