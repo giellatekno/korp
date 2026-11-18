@@ -1,0 +1,25 @@
+# Credentials
+tasks/.CLOUDFLARE_API_TOKEN
+tasks/s3_compat_credentials
+tasks/xxx
+**/.dev.vars
+**/.dev.vars.*
+secrets*.env
+*.env
+
+# Build output
+target/
+node_modules/
+.wrangler/
+**/dist/
+tasks/html/
+
+# Big data (corpora live in R2, see TODO.md task 3)
+cwb-data/
+compile-cwb-mono/compiled_mono/
+
+# Old containers-template Worker, replaced by task 4 (TODO.md)
+tasks/korp-backend-fkv/
+
+# Claude Code worktrees and local settings
+.claude/
