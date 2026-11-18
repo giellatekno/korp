@@ -23,3 +23,6 @@ tasks/korp-backend-fkv/
 
 # Claude Code worktrees and local settings
 .claude/
+
+# Session notes, reference only
+claude-log

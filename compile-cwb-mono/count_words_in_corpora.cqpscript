@@ -1,0 +1,37 @@
+set AutoShow off;
+
+SME_ADMIN_20261026;
+[word = "[A-ZÁŠČĐŽÆØÅa-zčšáđŋžŧæøå0-9]+"];
+count by lemma;
+
+SME_BLOGS_20261026;
+[word = "[A-ZÁŠČĐŽÆØÅa-zčšáđŋžŧæøå0-9]+"];
+count by lemma;
+
+SME_BIBLE_20261026;
+[word = "[A-ZÁŠČĐŽÆØÅa-zčšáđŋžŧæøå0-9]+"];
+count by lemma;
+
+SME_FICTI_20261026;
+[word = "[A-ZÁŠČĐŽÆØÅa-zčšáđŋžŧæøå0-9]+"];
+count by lemma;
+
+SME_NEWS_20261026;
+[word = "[A-ZÁŠČĐŽÆØÅa-zčšáđŋžŧæøå0-9]+"];
+count by lemma;
+
+SME_BIBLE_20261026;
+[word = "[A-ZÁŠČĐŽÆØÅa-zčšáđŋžŧæøå0-9]+"];
+count by lemma;
+
+SME_FACTA_20261026;
+[word = "[A-ZÁŠČĐŽÆØÅa-zčšáđŋžŧæøå0-9]+"];
+count by lemma;
+
+SME_LAWS_20261026;
+[word = "[A-ZÁŠČĐŽÆØÅa-zčšáđŋžŧæøå0-9]+"];
+count by lemma;
+
+SME_SCIENCE_20261026;
+[word = "[A-ZÁŠČĐŽÆØÅa-zčšáđŋžŧæøå0-9]+"];
+count by lemma;
