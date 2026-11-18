@@ -1,5 +1,0 @@
-# The build context is tasks/. Send only what the Containerfiles COPY from it
-# (podman reads this file too).
-*
-!containerfiles/
-!gtweb2_config/

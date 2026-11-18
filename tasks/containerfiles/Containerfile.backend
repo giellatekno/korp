@@ -1,8 +1,9 @@
 # korp-backend (Språkbanken's, version 9, branch dev), with Corpus WorkBench.
 #
-# Build (src/main.rs does this, from the tasks/ directory):
+# Build (`build back` in the tasks tool does this), from the korp repo root,
+# which is the build context (see .dockerignore there):
 #
-#   podman build -t korp-backend -f containerfiles/Containerfile.backend .
+#   docker build --load -t korp-backend -f tasks/containerfiles/Containerfile.backend .
 #
 # Nothing corpus-specific is in the image. At runtime it needs:
 #   /corpora        a directory with CWB's registry/ and data/ (read-only is
@@ -16,7 +17,7 @@
 #
 # For example, from the korp repo root:
 #
-#   podman run --rm -p 127.0.0.1:8000:8000 \
+#   docker run --rm -p 127.0.0.1:8000:8000 \
 #       -v ./cwb-data:/corpora:ro \
 #       -v ./gtweb2_config/corpus_configs/fkv:/corpus_config:ro \
 #       korp-backend:9.0.0-dev

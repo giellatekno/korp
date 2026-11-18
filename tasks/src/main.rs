@@ -62,26 +62,25 @@ impl Config<'_> {
     }
 }
 
-/// Start from directory given by `cwd`. Look for a directory named `containerfiles`
-/// inside `cwd`, and if found, return `cwd`. If not found, go to `cwd`'s parent,
-/// and look again. If arriving at the root and still no such directory found,
-/// return an error.
+/// The Docker build context: the korp repo root, i.e. the first of `cwd` and its
+/// ancestors that contains `gtweb2_config/` (the Containerfiles COPY from it).
+/// What gets sent is limited by `.dockerignore` in the repo root.
 fn get_build_context_dir(cwd: &Path) -> std::io::Result<&Path> {
     let _span = tracing::debug_span!("get_build_context_dir()");
-    for dir in cwd.ancestors() {
-        if dir.join("containerfiles").is_dir() {
-            tracing::debug!(?dir, "found context dir");
-            return Ok(dir);
-        }
-    }
-    Err(std::io::Error::other("no containerfiles directory found"))
+    let dir = cwd
+        .ancestors()
+        .find(|dir| dir.join("gtweb2_config").is_dir())
+        .ok_or_else(|| std::io::Error::other("no gtweb2_config directory found in cwd or its parents"))?;
+    tracing::debug!(?dir, "found context dir");
+    Ok(dir)
 }
 
 fn frontend_image_name(lang: Lang) -> String {
     format!("korp-frontend-{lang}")
 }
 
-/// Run `docker build --load -f <containerfile> -t <tag>... [--build-arg <arg>...] <context>`.
+/// Run `docker build --load -f <containerfile> -t <tag>... [--build-arg <arg>...] <context>`,
+/// with the repo root as the context, and `<root>/tasks/containerfiles/<containerfile>`.
 fn docker_build(
     config: &Config,
     containerfile: &str,
@@ -90,6 +89,8 @@ fn docker_build(
 ) -> Result<(), SubprocessError> {
     let context = get_build_context_dir(config.cwd)?;
     let mut cmd = std::process::Command::new(DOCKER);
+    // -f is relative to the process's cwd, not to the context
+    let containerfile = context.join("tasks/containerfiles").join(containerfile);
     cmd.arg("build").arg("--load").arg("-f").arg(containerfile);
     for tag in tags {
         cmd.arg("-t").arg(tag);
@@ -107,7 +108,7 @@ fn build_front_base(config: &Config) -> Result<(), SubprocessError> {
     tracing::info!("build container image 'korp-frontend-base'");
     docker_build(
         config,
-        "containerfiles/Containerfile.frontend-base",
+        "Containerfile.frontend-base",
         &["korp-frontend-base"],
         &[],
     )
@@ -120,7 +121,7 @@ fn build_front(config: &Config, lang: Lang) -> Result<(), SubprocessError> {
     tracing::info!("build container image '{image_name}'");
     docker_build(
         config,
-        "containerfiles/Containerfile.frontend",
+        "Containerfile.frontend",
         &[&image_name],
         &[format!("instance={lang}")],
     )
@@ -162,7 +163,7 @@ async fn deploy_front(config: &Config<'_>, lang: Lang) -> anyhow::Result<()> {
 /// Build the backend image (one image for all languages). Tagged both as
 /// korp-backend:<tag> and as <account registry>/korp-backend:<tag>.
 fn build_back(config: &Config) -> anyhow::Result<ImageName> {
-    tracing::info!("build container image 'korp-backend' from containerfiles/Containerfile.backend");
+    tracing::info!("build container image 'korp-backend' from tasks/containerfiles/Containerfile.backend");
     let image_name = ImageName::builder()
         .registry(format!("registry.cloudflare.com/{}", config.cf_account_id()?))
         .name("korp-backend".to_string())
@@ -171,7 +172,7 @@ fn build_back(config: &Config) -> anyhow::Result<ImageName> {
         .expect("name is set");
     docker_build(
         config,
-        "containerfiles/Containerfile.backend",
+        "Containerfile.backend",
         &[&image_name.to_name_and_tag_string(), &image_name.to_string()],
         &[],
     )?;

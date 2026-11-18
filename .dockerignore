@@ -1,0 +1,4 @@
+# The Docker build context is the repo root (tasks/src/main.rs). Send only what
+# the Containerfiles in tasks/containerfiles/ COPY from it.
+*
+!gtweb2_config/
