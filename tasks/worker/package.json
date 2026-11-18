@@ -1,0 +1,14 @@
+{
+  "name": "korp-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "types": "wrangler types",
+    "check": "wrangler types && tsc --noEmit",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "wrangler": "^4.163.0"
+  }
+}

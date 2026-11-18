@@ -7,6 +7,7 @@ mod const_str_trim;
 mod instance_specifier;
 mod manifest;
 mod docker;
+mod deploy_back;
 mod worker_script;
 pub mod wranglerjsonc;
 
@@ -117,17 +118,16 @@ async fn cf_deploy_front<'a>(
 }
 
 /// Directory (in tasks/) where wrangler is installed (node_modules), to run it from.
-/// For now that's the korp-backend-fkv Worker, the only one there is.
-/// TODO: wrangler setup shared by all instances, when the Workers are redone.
-const WRANGLER_DIR: &str = "korp-backend-fkv";
+/// The Worker template of all languages (see src/deploy_back.rs).
+const WRANGLER_DIR: &str = "worker";
 
 /// Push the backend image to the Cloudflare container registry of the account,
 /// with `wrangler containers push`.
 async fn push_back<'a>(config: &Config<'a>, image_name: ImageName) -> anyhow::Result<()> {
     let image_name = image_name.to_name_and_tag_string();
-    tracing::info!(working_directory = WRANGLER_DIR, image_name, "run: 'pnpm wrangler containers push {image_name}'");
+    tracing::info!(working_directory = WRANGLER_DIR, image_name, "run: 'npx wrangler containers push {image_name}'");
 
-    let status = std::process::Command::new("pnpm")
+    let status = std::process::Command::new("npx")
         .args(["wrangler", "containers", "push", &image_name])
         .current_dir(config.cwd.join(WRANGLER_DIR))
         // also when the account id was given with --cf-account-id, not the env var
@@ -137,45 +137,29 @@ async fn push_back<'a>(config: &Config<'a>, image_name: ImageName) -> anyhow::Re
     Ok(())
 }
 
-async fn wrangler_deploy(wd: &Path, lang: &str) -> anyhow::Result<()> {
-    let dir = format!("korp-backend-{lang}");
-    tracing::info!(working_directory = dir, "run: 'pnpm wrangler deploy'");
-
-    std::process::Command::new("pnpm")
-        .args(["wrangler", "deploy"])
-        .current_dir(wd)
-        .status()?;
-
-    Ok(())
-}
-
+/// Deploy the Worker korp-<lang>: build and push the backend image (unless
+/// dry run), then the rest in deploy_back.rs.
 async fn cf_deploy_back<'a>(
     config: &Config<'a>,
     instance: Instance,
+    dry_run: bool,
 ) -> anyhow::Result<()> {
-    //let cwb_version = build_cwb_containerimage(config.cwd).await?;
-    //let lang = instance.lang.as_str();
-    //let wd = config.cwd.join(format!("korp-backend-{lang}"));
-    //let image_name = build_korp_backend(config, &cwb_version).await?;
-    //tracing::debug!("image_name: {image_name}, tag={}", image_name.tag);
-    //let wrangler_jsonc_path = wd.join("wrangler.jsonc");
-    //let mut doc = crate::wranglerjsonc::Document::from_path(&wrangler_jsonc_path)?;
-    //let image = doc.get_image()?;
-    //let new_image = image.with_tag(&image_name.tag)?;
-
-    //if image == new_image {
-    //    tracing::info!("no image change");
-    //} else {
-    //    tracing::info!(?new_image, ?image, "image changed");
-    //}
-
-    //doc.set_image(new_image.clone())?;
-    //doc.save(&wrangler_jsonc_path)?;
-    //push_korp_backend_to_cf_containerregistry(config.cwd, lang, new_image).await?;
-    let lang = instance.lang.as_str();
-    let wd = config.cwd.join(format!("korp-backend-{lang}"));
-    wrangler_deploy(&wd, lang).await?;
-    Ok(())
+    let repository = format!("registry.cloudflare.com/{}/korp-backend", config.cf_account_id);
+    let image = if dry_run {
+        format!("{repository}@{}", deploy_back::PLACEHOLDER_IMAGE_DIGEST)
+    } else {
+        let image_name = build_back(config).await?;
+        push_back(config, image_name.clone()).await?;
+        deploy_back::pushed_image_digest(&image_name.to_string(), &repository)?
+    };
+    tracing::info!(image, "backend image");
+    deploy_back::deploy(&deploy_back::Options {
+        tasks_dir: config.cwd,
+        account_id: config.cf_account_id,
+        lang: instance.lang.as_str(),
+        image: &image,
+        dry_run,
+    })
 }
 
 /// Tag of the korp-backend image. The Containerfile clones korp-backend's dev
@@ -218,9 +202,10 @@ async fn build_back<'a>(
 async fn cf_deploy<'a>(
     config: &Config<'a>,
     instance: Instance,
+    dry_run: bool,
 ) -> anyhow::Result<()> {
     if instance.is_backend() {
-        cf_deploy_back(config, instance).await
+        cf_deploy_back(config, instance, dry_run).await
     } else {
         cf_deploy_front(config, instance).await
     }
@@ -259,7 +244,7 @@ async fn main() -> anyhow::Result<()> {
     if let Some(matches) = matches.subcommand_matches("cf") {
         if let Some(matches) = matches.subcommand_matches("deploy") {
             let inst = *matches.get_one("instance").expect("required");
-            return cf_deploy(&config, inst).await;
+            return cf_deploy(&config, inst, matches.get_flag("dry-run")).await;
         } else if let Some(matches) = matches.subcommand_matches("build") {
             match matches.subcommand() {
                 Some(("back", _)) => {

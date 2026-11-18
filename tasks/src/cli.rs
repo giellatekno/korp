@@ -22,11 +22,20 @@ pub fn parse_args() -> clap::ArgMatches {
                 .about("Cloudflare-related tasks")
                 .subcommand_required(true)
                 .subcommand(
-                    Command::new("deploy").alias("d").arg(
-                        Arg::new("instance")
-                            .required(true)
-                            .value_parser(<Instance as std::str::FromStr>::from_str),
-                    ),
+                    Command::new("deploy")
+                        .alias("d")
+                        .about("Deploy back-<lang> (the Worker korp-<lang>, see src/deploy_back.rs) or front-<lang>")
+                        .arg(
+                            Arg::new("instance")
+                                .required(true)
+                                .value_parser(<Instance as std::str::FromStr>::from_str),
+                        )
+                        .arg(
+                            Arg::new("dry-run")
+                                .long("dry-run")
+                                .action(clap::ArgAction::SetTrue)
+                                .help("back: don't build or push the image, only check R2 and run 'wrangler deploy --dry-run'"),
+                        ),
                 )
                 .subcommand(
                     Command::new("build")

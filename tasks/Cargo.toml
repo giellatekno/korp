@@ -12,7 +12,7 @@ futures = "0.3.33"
 hex = "0.4.3"
 humansize = "2.1.3"
 jiff = "0.2.37"
-jsonc-parser = { version = "0.33.2", features = ["cst"] }
+jsonc-parser = { version = "0.33.2", features = ["cst", "serde"] }
 mime_guess = "2.0.5"
 reqwest = { version = "0.13.4", features = ["json", "multipart"] }
 serde = { version = "1.0.229", features = ["derive"] }
