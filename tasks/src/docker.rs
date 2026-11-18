@@ -22,23 +22,7 @@ pub struct ImageNameBuilder {
     tag: Option<String>,
 }
 
-#[derive(Debug, thiserror::Error)]
-#[error("tag can't contain ':'")]
-pub struct InvalidTagError;
-
 impl ImageName {
-    pub fn with_tag(&self, new_tag: &str) -> Result<Self, InvalidTagError> {
-        if new_tag.contains(":") {
-            Err(InvalidTagError)
-        } else {
-            Ok(Self {
-                registry: self.registry.clone(),
-                name: self.name.clone(),
-                tag: new_tag.to_string(),
-            })
-        }
-    }
-
     pub fn builder() -> ImageNameBuilder {
         ImageNameBuilder::default()
     }
@@ -88,33 +72,6 @@ impl ImageNameBuilder {
             registry,
             name,
             tag,
-        })
-    }
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum ParseImageNameError {
-    // I dunno what would go here
-}
-
-impl std::convert::TryFrom<&str> for ImageName {
-    type Error = ParseImageNameError;
-
-    fn try_from(val: &str) -> Result<Self, Self::Error> {
-        let (rest, tag) = match val.rfind(':') {
-            Some(i) => (&val[..i], &val[i..]),
-            None => (val, "latest"),
-        };
-
-        let (registry, name) = match rest.rfind('/') {
-            Some(i) => (&rest[..i], &rest[i + 1..]),
-            None => ("localhost", rest),
-        };
-
-        Ok(Self {
-            registry: registry.to_string(),
-            name: name.to_string(),
-            tag: tag.to_string(),
         })
     }
 }

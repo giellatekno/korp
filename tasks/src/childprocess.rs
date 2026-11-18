@@ -32,7 +32,7 @@ pub enum ChildExitError {
 /// was not success.
 pub fn child_exit_ok(exit_status: &std::process::ExitStatus) -> Result<(), ChildExitError> {
     match exit_status.code() {
-        Some(code) if code == 0 => Ok(()),
+        Some(0) => Ok(()),
         Some(code) => Err(ChildExitError::NonZero(code)),
         None => Err(ChildExitError::Terminated),
     }

@@ -42,16 +42,6 @@ pub async fn deploy_to_cloudflare(
 
     let manifest = Manifest::build_from_directory(static_assets_dir)?;
 
-    //let root = manifest.root.as_path();
-    //for (hash, item) in manifest.items {
-    //    let Ok(path) = item.path.strip_prefix(root) else {
-    //        panic!("at the disco");
-    //    };
-
-    //    println!("{hash} {}", path.display());
-    //}
-    //panic!("temp: ending here now");
-
     let AssetsUploadSessionResponse {
         jwt: upload_jwt,
         buckets,
@@ -84,14 +74,12 @@ pub async fn deploy_to_cloudflare(
     };
 
     let versions::Version { id: version_id, .. } =
-        create_version(account_id, api_token, script_name, &completion_jwt).await?;
+        create_version(account_id, script_name, api_token, &completion_jwt).await?;
 
     tracing::info!(version_id, "created new version of worker");
 
-    let resp = create_deployment(account_id, api_token, script_name, &version_id).await?;
-    //let Deployment { id: version_id, .. } = resp.try_into_result()?;
-
-    println!("deployed");
+    create_deployment(account_id, script_name, api_token, &version_id).await?;
+    tracing::info!(script_name, version_id, "deployed");
 
     Ok(())
 }
@@ -119,17 +107,6 @@ pub enum UploadAssetsError {
 
     #[error("cf didn't send completion jwt")]
     NoCompletionJwt,
-}
-
-async fn cf_get_worker(
-    account_id: &str,
-    api_token: &str,
-    script_name: &str,
-) -> Result<CreateWorkerResponse, ReqError> {
-    get(
-        &format!("https://api.cloudflare.com/client/v4/accounts/{account_id}/workers/workers/{script_name}"),
-        Some(api_token)
-    ).await
 }
 
 async fn cf_create_worker(
@@ -265,30 +242,6 @@ fn json_body<T: serde::Serialize>(obj: T) -> Body {
 pub enum Body {
     Form(reqwest::multipart::Form),
     Json(serde_json::Value),
-}
-
-pub async fn get<R>(url: &str, auth_token: Option<&str>) -> Result<R, ReqError>
-where
-    R: serde::de::DeserializeOwned,
-{
-    let mut rb = reqwest::Client::new().post(url);
-
-    if let Some(auth_token) = auth_token {
-        rb = rb.header("Authorization", format!("Bearer {}", auth_token));
-    }
-
-    let resp = rb.send().await?;
-    let text = resp.text().await?;
-
-    let api_response = match serde_json::from_str::<ApiResponse<R>>(&text) {
-        Ok(json) => json,
-        Err(e) => {
-            tracing::error!(text, "could not deserialize body into type");
-            return Err(ReqError::Deserialize(e));
-        }
-    };
-
-    api_response.try_into_result()
 }
 
 pub async fn post<R>(url: &str, auth_token: Option<&str>, body: Body) -> Result<R, ReqError>

@@ -37,7 +37,7 @@ impl<T> ApiResponse<T> {
         let mut error_code = None;
         if let Some(ref errors) = self.errors {
             for error in errors {
-                if let None = error_code {
+                if error_code.is_none() {
                     error_code = Some(error.code);
                 }
                 tracing::error!(?error, "error message");
