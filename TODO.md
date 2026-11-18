@@ -70,7 +70,7 @@ Notes (2026-11-19):
 **Done when:** `git status` shows only intended files, and no secrets are
 committable.
 
-## 2. Management tool: clean up the command structure (small, independent)
+## 2. Management tool: clean up the command structure (small, independent) — DONE
 
 Everything is on Cloudflare now, so the `cf` subcommand level goes away:
 `tasks build back`, `tasks build front <lang>`, `tasks push back`, `tasks
@@ -85,6 +85,23 @@ and 5 once those processes are established.
 
 **Done when:** the tool compiles without warnings and `--help` shows the new
 structure; `build back` still builds the image.
+
+**Done (2026-11-18).** For the next tasks:
+- Commands: `build back`, `build front <lang>`, `push back` (build + `wrangler
+  containers push`), `deploy back <lang>` (`wrangler deploy` in
+  `korp-backend-<lang>/`), `deploy front <lang>`. `Lang` is in `src/lang.rs`;
+  `Instance`/`Side` are gone.
+- Account id: `--cf-account-id` / `CLOUDFLARE_ACCOUNT_ID`, else the file
+  `CLOUDFLARE_ACCOUNT_ID` in the current directory. The API token file is
+  only read by `deploy front`.
+- Docker build context is the repo root (the first ancestor with
+  `gtweb2_config/`), limited by the root `.dockerignore`; Containerfiles are
+  passed as `<root>/tasks/containerfiles/<name>`. Task 5 must add
+  `!logo_change/` to `.dockerignore`.
+- Fixed: `deploy front` passed the API token and script name swapped to
+  `create_version`/`create_deployment` (untested against the API since).
+- `wrangler` is still run from `korp-backend-fkv/` (`WRANGLER_DIR` in
+  `main.rs`), which task 4 replaces.
 
 ## 3. Corpus data in R2
 
