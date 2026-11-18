@@ -39,7 +39,7 @@ need to know (decisions, names, URLs) under the task.
 
 ---
 
-## 1. Repo hygiene (small; do first) — DONE, one step left
+## 1. Repo hygiene (small; do first) — DONE
 
 Notes (2026-11-19):
 - Root `.gitignore` added (credentials, build output, big data,
@@ -49,9 +49,8 @@ Notes (2026-11-19):
 - main was fast-forwarded to d102bd1 (the tool as it was, committed by the
   task-2 session).
 - Docker build context = repo root (the root `.dockerignore` lets only
-  `gtweb2_config/` through; add `!logo_change/` in task 5). This is in task 2's
-  branch (commit 6c319da). **Left to do:** once that branch is merged,
-  `rm -rf tasks/gtweb2_config` (stale; nothing uses it after the merge).
+  `gtweb2_config/` through; add `!logo_change/` in task 5). Came with task 2
+  (b975c95); the stale `tasks/gtweb2_config/` was then deleted.
 - Left alone on purpose: the deleted submodules `korp-backend`/`korp-frontend`
   and the tracked `.deb` (unstaged deletions in `git status`), and the untracked
   `compile-cwb-mono/` and `claude-log`.
