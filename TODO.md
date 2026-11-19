@@ -179,7 +179,7 @@ versioning rule").
 **Done when:** fkv's corpora are in R2 in the new layout, uploaded by the tool,
 and the layout is documented (here and in the tool's help).
 
-## 4. API Worker (backend on Cloudflare) (built and tested locally; the first real deploy is Anders's)
+## 4. API Worker (backend on Cloudflare) — DONE
 
 **State (2026-11-19):** merged into main with task 3. One Worker per language
 (`korp-<lang>`), all from the same code and template in `manage/worker/`
@@ -190,8 +190,14 @@ Durable Object reads `langs/<lang>/current` and that release, passes
 `DATA_URL=http://data.internal/<release>` + `CORPORA`, and `DataHandler` serves
 only archives named in a release of this language. Tested locally (wrangler
 dev + local R2 filled by `data upload` via a local S3): `/api/info`,
-`/api/concordance`, restart; cold start 1.9 s for fkv. Not yet on Cloudflare,
-not measured there.
+`/api/concordance`, restart; cold start 1.9 s for fkv.
+
+**Deployed (2026-11-19)** on the test account: https://korp-fkv.uit-anders.workers.dev
+(`/api/info`, `/api/concordance` OK). Cold start there: 26 s from the first
+request to the answer (local: 1.9 s), then ~0.2 s per request. Not yet
+broken down (container provisioning vs. download from R2); peak memory not
+measured. `restart` retries for 10 s while the Worker isn't reachable (right
+after the first deploy, workers.dev answers 404 / error 1042 for a moment).
 
 Cleanup done (2026-11-19): the old `korp-backend-fkv` Worker, its container
 application and the bucket `korp-data` are deleted on the test account (all its

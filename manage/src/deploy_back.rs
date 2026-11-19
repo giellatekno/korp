@@ -251,21 +251,42 @@ pub async fn restart_lang(manage_dir: &Path, account_id: &str, api_token: &str, 
     restart(&url, &secrets_path)
 }
 
+/// How long `restart` keeps trying while the Worker isn't reachable (see there).
+const RESTART_RETRY_FOR: std::time::Duration = std::time::Duration::from_secs(10);
+
 /// POST <url>/admin/restart: stops the container; the next request starts a
 /// new one with the deployed image and the current corpora.
 pub fn restart(url: &str, secrets_path: &Path) -> anyhow::Result<()> {
     let token = admin_token(secrets_path)?;
     println!("POST {url}/admin/restart");
-    let output = Command::new("curl")
-        .args(["--fail-with-body", "--silent", "--show-error", "-X", "POST", "-H"])
-        .arg(format!("Authorization: Bearer {token}"))
-        .arg(format!("{url}/admin/restart"))
-        .output()?;
-    print!("{}", String::from_utf8_lossy(&output.stdout));
-    if !output.status.success() {
-        bail!("restart failed: {}", String::from_utf8_lossy(&output.stderr).trim());
+    let started = std::time::Instant::now();
+    loop {
+        // Body, then the status code on the last line (000 if no response)
+        let output = Command::new("curl")
+            .args(["--silent", "--show-error", "--max-time", "30", "-w", "\n%{http_code}", "-X", "POST", "-H"])
+            .arg(format!("Authorization: Bearer {token}"))
+            .arg(format!("{url}/admin/restart"))
+            .output()?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let (body, status) = stdout.trim_end().rsplit_once('\n').unwrap_or(("", stdout.trim()));
+        let status: u16 = status.trim().parse().unwrap_or(0);
+        if (200..300).contains(&status) {
+            print!("{body}");
+            return Ok(());
+        }
+        let problem = match status {
+            0 => format!("no response: {}", String::from_utf8_lossy(&output.stderr).trim()),
+            _ => format!("HTTP {status}: {}", body.trim()),
+        };
+        // A wrong token stays wrong. Anything else may be the Worker not being
+        // reachable yet: right after the first deploy, its workers.dev hostname
+        // answers 404 (Cloudflare error 1042) for a few seconds.
+        if status == 401 || status == 403 || started.elapsed() >= RESTART_RETRY_FOR {
+            bail!("restart failed: {problem}");
+        }
+        println!("  not reachable yet ({problem}), retrying");
+        std::thread::sleep(std::time::Duration::from_secs(1));
     }
-    Ok(())
 }
 
 /// The registry digest reference of a pushed image:
