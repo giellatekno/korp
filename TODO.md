@@ -146,11 +146,7 @@ Decisions:
   343 MB raw → 282 MB (zstd -19; -3 would be 308 MB), unpacks in <1 s. So the
   download dominates cold start (task 4: measure from R2).
 
-For task 4 (suggested contract): the Worker reads `langs/<lang>/current` and
-that release, and serves it as e.g. `http://data.internal/release.json`; the
-entrypoint fetches it, then `http://data.internal/<key>` for the config and
-each corpus (`curl | zstd -dc | tar -x -C …`). The Worker serves only keys
-named in that language's release. Note: sme's config names the
+Task 4 uses this: see its state below. Note: sme's config names the
 `*_20211118` corpora, while `compile-cwb-mono` made `*_20261026` (task 6).
 
 Commands for Anders (from `manage/`, with `CLOUDFLARE_ACCOUNT_ID` set):
@@ -183,7 +179,22 @@ versioning rule").
 **Done when:** fkv's corpora are in R2 in the new layout, uploaded by the tool,
 and the layout is documented (here and in the tool's help).
 
-## 4. API Worker (backend on Cloudflare)
+## 4. API Worker (backend on Cloudflare) (built and tested locally; the first real deploy is Anders's)
+
+**State (2026-11-19):** merged into main with task 3. One Worker per language
+(`korp-<lang>`), all from the same code and template in `manage/worker/`
+(`README.md` there); `manage deploy back <lang> [--dry-run]` builds, pushes,
+pins the image by digest, writes `worker/.build/<lang>/wrangler.json`,
+deploys and restarts. The Worker uses task 3's layout: at container start the
+Durable Object reads `langs/<lang>/current` and that release, passes
+`DATA_URL=http://data.internal/<release>` + `CORPORA`, and `DataHandler` serves
+only archives named in a release of this language. Tested locally (wrangler
+dev + local R2 filled by `data upload` via a local S3): `/api/info`,
+`/api/concordance`, restart; cold start 1.9 s for fkv. Not yet on Cloudflare,
+not measured there, old `korp-backend-fkv` Worker not deleted.
+
+### Original task description
+
 
 Replace `manage/korp-backend-fkv/` (made from the containers template: deprecated
 `Container` class, image by tag, R2 S3 keys passed into the container) with one

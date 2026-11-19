@@ -73,7 +73,7 @@ ENV LC_COLLATE=C.UTF-8
 # The entrypoint, in two steps:
 #
 # 1. Only if DATA_URL is set (on Cloudflare: http://data.internal, served from
-#    R2 by the Worker, see tasks/worker/src/index.ts): download and unpack
+#    R2 by the Worker (DATA_URL includes the release id), see manage/worker/src/index.ts): download and unpack
 #      $DATA_URL/config.tar.zst             into /corpus_config
 #      $DATA_URL/corpora/<corpus>.tar.zst   into /corpora, for each corpus in
 #                                           CORPORA (space-separated)

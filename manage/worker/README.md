@@ -11,9 +11,13 @@ browser ──▶ Worker korp-<lang>.<subdomain>.workers.dev
             ├─ POST /admin/restart stop the container (Authorization: Bearer $ADMIN_TOKEN)
             └─ everything else     404 (task 5: the frontend, as static assets)
 
+container start: the Durable Object reads R2 langs/<lang>/current → langs/<lang>/<release>.json,
+and starts the container with DATA_URL=http://data.internal/<release> and CORPORA=<its corpora>.
+
 container: enableInternet: false. Its only way out is http://data.internal (DataHandler):
-  /config.tar.zst              ──▶ R2 korp-corpora: configs/<lang>/<current>.tar.zst
-  /corpora/<corpus>.tar.zst    ──▶ R2 korp-corpora: corpora/<corpus>/<current>.tar.zst  (only corpora in CORPORA)
+  /<release>/config.tar.zst            ──▶ the config archive named in that release
+  /<release>/corpora/<corpus>.tar.zst  ──▶ the corpus archive named in that release
+  (only releases of this language; anything else 404)
 ```
 
 The entrypoint of the image (`containerfiles/Containerfile.backend`) downloads
@@ -27,45 +31,43 @@ Separate URLs, logs, stats and container sizes per language (sme's corpora are
 so the API URL is relative and no CORS is needed. The cost is one deploy per
 language, which the tool does anyway.
 
-## R2 layout (bucket `korp-corpora`, all languages of an account)
+## Data
 
-```
-configs/<lang>/<version>.tar.zst     contents of gtweb2_config/corpus_configs/<lang>/
-configs/<lang>/current               the version to use (text)
-corpora/<corpus>/<version>.tar.zst   registry/<corpus> + data/<dir>/ (dir = last part of HOME)
-corpora/<corpus>/current             the version to use (text)
-```
-
-`<corpus>` is the lowercase CWB name, same as the file names in
-`corpus_configs/<lang>/corpora/*.yaml`, which also decide which corpora a
-language gets (var `CORPORA`). Changing `current` needs no deploy, only a
-restart. Until task 3 gives the tool an upload command, `stub-data.sh` makes
-and uploads archives in this layout.
+The R2 bucket `korp-corpora` and its layout belong to `manage data` (see
+`manage data --help`, `src/corpora.rs`). The Worker only reads it: the
+language's current release decides the corpus config and corpora. So a data
+change (`manage data upload <lang>`, `manage data rollback <lang>`) needs no
+deploy, only a restart.
 
 ## Deploy
 
-From `tasks/`:
+From `manage/` (the account id comes from the file `CLOUDFLARE_ACCOUNT_ID`):
 
 ```sh
-export CLOUDFLARE_ACCOUNT_ID=$(cat CLOUDFLARE_ACCOUNT_ID)
-cargo run --release -- cf deploy back-fkv --dry-run   # no build/push; checks R2, wrangler deploy --dry-run
-cargo run --release -- cf deploy back-fkv             # build + push image, deploy, restart the container
+cargo run --release -- data upload fkv                 # once, and when data changes
+cargo run --release -- deploy back fkv --dry-run       # no build/push; checks R2, wrangler deploy --dry-run
+cargo run --release -- deploy back fkv                 # build + push image, deploy, restart the container
 ```
 
 The first deploy creates `worker/secrets.<account id>.env` with a random
-`ADMIN_TOKEN` (passed with `--secrets-file` on every deploy). Restart by hand:
+`ADMIN_TOKEN` (passed with `--secrets-file` on every deploy). Restart by hand
+(e.g. after `data upload`):
 
 ```sh
-curl -X POST -H "Authorization: Bearer $(sed -n 's/^ADMIN_TOKEN=//p' worker/secrets.$CLOUDFLARE_ACCOUNT_ID.env)" \
+curl -X POST -H "Authorization: Bearer $(sed -n 's/^ADMIN_TOKEN=//p' worker/secrets.$(cat CLOUDFLARE_ACCOUNT_ID).env)" \
      https://korp-fkv.<subdomain>.workers.dev/admin/restart
 ```
 
-## Local test (real Docker, not podman)
+## Local test (real Docker, not podman: `unset DOCKER_HOST`)
+
+Fill wrangler dev's local R2 with a release: upload to a local S3 server with
+`KORP_S3_ENDPOINT=http://127.0.0.1:7070 AWS_ACCESS_KEY_ID=… AWS_SECRET_ACCESS_KEY=…
+manage data upload fkv` (e.g. `versity/versitygw … posix /data` in Docker), then
+copy each object with `npx wrangler r2 object put korp-corpora/<key> --local --file …`.
 
 ```sh
 cd worker && npm ci
-KORP_DIR=… ./stub-data.sh fkv test1 --local   # from tasks/: fills wrangler dev's local R2
-printf 'ADMIN_TOKEN="x"\nCORPORA="fkv_admin_20210319 …"\n' > .dev.vars
+printf 'ADMIN_TOKEN="test"\n' > .dev.vars
 npx wrangler dev                               # builds the image; then curl localhost:8787/api/info
 ```
 

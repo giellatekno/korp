@@ -1,18 +1,26 @@
 // The Korp Worker of one language: runs korp-backend in a container behind
-// /api/*. The same code for all languages; the language and its corpora come
-// from `vars` (see wrangler.jsonc, the template the management tool generates
+// /api/*. The same code for all languages; the language comes from the var
+// KORP_LANG (see wrangler.jsonc, the template the management tool generates
 // each language's config from).
 //
 //   /api/*               → korp-backend (Korp 9 API, prefix stripped), e.g.
 //                          /api/info, /api/concordance?corpora=…&cqp=…
 //   POST /admin/restart  (Authorization: Bearer $ADMIN_TOKEN)
 //                        → stop the container; the next request starts a new
-//                          one, which fetches the current corpora from R2
+//                          one, with the language's current release from R2
 //   everything else      → 404 (later: the frontend, as static assets)
 //
-// The container has no internet access. Its only way out is the made-up
-// hostname data.internal, which the Durable Object intercepts, and DataHandler
-// below serves from R2: only this language's corpus config and corpora.
+// What the container gets is the language's current *release* in R2 (written
+// by `manage data upload`, see `manage data --help`):
+//
+//   langs/<lang>/current          the release id in use, e.g. 20261119T101500Z
+//   langs/<lang>/<release>.json   {"config": {"key"}, "corpora": {"<corpus>": {"key"}, …}, …}
+//
+// The Durable Object reads it when it starts the container, and passes the
+// release id and corpus names. The container has no internet access. Its only
+// way out is the made-up hostname data.internal, which the Durable Object
+// intercepts, and DataHandler below serves from R2: only archives named in a
+// release of this language.
 
 import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers';
 
@@ -29,9 +37,29 @@ const IDLE_TIMEOUT_MS = 6 * 60 * 60 * 1000;
 // and unpack of the corpora + gunicorn startup.
 const STARTUP_TIMEOUT_MS = 5 * 60_000;
 
-const CORPUS_NAME = /^[a-z0-9_-]+$/;
+const RELEASE_ID = /^[0-9]{8}T[0-9]{6}Z$/;
 
-const corpora = (env: Env): string[] => env.CORPORA.split(/\s+/).filter(Boolean);
+// langs/<lang>/<release>.json, as written by `manage data upload` (src/corpora.rs)
+interface Release {
+  lang: string;
+  release: string;
+  config: { key: string; size: number };
+  corpora: Record<string, { key: string; size: number }>;
+}
+
+const currentRelease = async (env: Env): Promise<Release> => {
+  const id = (await (await env.DATA.get(`langs/${env.KORP_LANG}/current`))?.text())?.trim();
+  if (!id) throw new Error(`no langs/${env.KORP_LANG}/current in R2: upload with \`manage data upload ${env.KORP_LANG}\``);
+  const release = await loadRelease(env, id);
+  if (!release) throw new Error(`langs/${env.KORP_LANG}/current names ${id}, which isn't in R2`);
+  return release;
+};
+
+const loadRelease = async (env: Env, id: string): Promise<Release | null> => {
+  if (!RELEASE_ID.test(id)) return null;
+  const object = await env.DATA.get(`langs/${env.KORP_LANG}/${id}.json`);
+  return object ? ((await object.json()) as Release) : null;
+};
 
 export class Korp extends DurableObject<Env> {
   // Shared by concurrent requests while the container starts
@@ -81,6 +109,9 @@ export class Korp extends DurableObject<Env> {
     const container = this.container;
     const started = Date.now();
     if (!container.running) {
+      const release = await currentRelease(this.env);
+      const corpora = Object.keys(release.corpora).sort();
+      console.log(`Starting Korp with release ${release.release}: ${corpora.length} corpora`);
       // Intercepts must be registered before start(), and again for each new container
       await container.interceptOutboundHttp('data.internal', this.ctx.exports.DataHandler);
       container.start({
@@ -89,8 +120,9 @@ export class Korp extends DurableObject<Env> {
         enableInternet: false,
         env: {
           // Read by the entrypoint (see Containerfile.backend)
-          DATA_URL: 'http://data.internal',
-          CORPORA: corpora(this.env).join(' '),
+          // The release is in the URL, so every download is from the same release
+          DATA_URL: `http://data.internal/${release.release}`,
+          CORPORA: corpora.join(' '),
           // Korp 9 settings (korp/config.py in korp-backend)
           CORS_ALLOW_ORIGINS: this.env.CORS_ALLOW_ORIGINS || '[]',
         },
@@ -137,32 +169,32 @@ export class Korp extends DurableObject<Env> {
 
 // Serves the container's downloads, from R2 (bucket binding DATA):
 //
-//   http://data.internal/config.tar.zst
-//       → configs/<KORP_LANG>/<version>.tar.zst      the corpus config of this language
-//   http://data.internal/corpora/<corpus>.tar.zst
-//       → corpora/<corpus>/<version>.tar.zst    one corpus, if it's in CORPORA
+//   http://data.internal/<release>/config.tar.zst
+//       → the config archive named in langs/<KORP_LANG>/<release>.json
+//   http://data.internal/<release>/corpora/<corpus>.tar.zst
+//       → the archive of <corpus> named in that release
 //
-// where <version> is the content of the `current` object next to the archives
-// (configs/<KORP_LANG>/current, corpora/<corpus>/current). Anything else is 404.
+// Anything else is 404, so the container can only get this language's data.
 export class DataHandler extends WorkerEntrypoint<Env> {
   async fetch(request: Request): Promise<Response> {
-    const path = new URL(request.url).pathname;
-    let prefix: string | undefined;
-    if (path === '/config.tar.zst') {
-      prefix = `configs/${this.env.KORP_LANG}`;
-    } else {
-      const corpus = path.match(/^\/corpora\/([^/]+)\.tar\.zst$/)?.[1];
-      if (corpus && CORPUS_NAME.test(corpus) && corpora(this.env).includes(corpus)) prefix = `corpora/${corpus}`;
-    }
-    if (request.method !== 'GET' || !prefix) return new Response('Not found', { status: 404 });
+    const match = new URL(request.url).pathname.match(/^\/([^/]+)\/(config|corpora\/([^/]+))\.tar\.zst$/);
+    if (request.method !== 'GET' || !match) return new Response('Not found', { status: 404 });
+    const [, id, what, corpus] = match;
 
-    const version = (await (await this.env.DATA.get(`${prefix}/current`))?.text())?.trim();
-    const archive = version ? await this.env.DATA.get(`${prefix}/${version}.tar.zst`) : null;
+    const release = await loadRelease(this.env, id);
+    const key = !release
+      ? undefined
+      : what === 'config'
+        ? release.config.key
+        : Object.hasOwn(release.corpora, corpus)
+          ? release.corpora[corpus].key
+          : undefined;
+    const archive = key ? await this.env.DATA.get(key) : null;
     if (!archive) {
-      console.error(`${prefix} not found in R2 (current: ${version ?? 'missing'})`);
+      console.error(`Not found: ${what} of release ${id} of ${this.env.KORP_LANG} (key: ${key ?? 'none'})`);
       return new Response('Not found in R2', { status: 404 });
     }
-    console.log(`Serving ${prefix}/${version}.tar.zst (${archive.size} bytes)`);
+    console.log(`Serving ${key} (${archive.size} bytes)`);
     return new Response(archive.body, { headers: { 'content-length': String(archive.size) } });
   }
 }

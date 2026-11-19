@@ -2,8 +2,8 @@
 // /api/*. See src/index.ts.
 //
 // This is the template for all languages: the management tool writes a copy
-// per language (.build/<lang>/wrangler.json) with the Worker name, KORP_LANG,
-// CORPORA and the image pinned by digest, and deploys that. `wrangler types`
+// per language (.build/<lang>/wrangler.json) with the Worker name, KORP_LANG
+// and the image pinned by digest, and deploys that. `wrangler types`
 // and `wrangler dev` read this file directly (dev builds the image itself).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
@@ -29,20 +29,14 @@
     "bindings": [{ "name": "KORP", "class_name": "Korp" }]
   },
 
-  // Corpus configs and corpora, shared by all languages in an account:
-  //   configs/<lang>/<version>.tar.zst     corpus_configs/<lang>/ (attributes/, corpora/, modes/)
-  //   corpora/<corpus>/<version>.tar.zst   registry/<corpus> + data/<dir>/ of one CWB corpus
-  // with configs/<lang>/current and corpora/<corpus>/current naming the version to use.
+  // Corpus configs and corpora of all languages in an account, uploaded with
+  // `manage data upload <lang>` (layout: `manage data --help`). The container
+  // gets the release that langs/<KORP_LANG>/current names.
   "r2_buckets": [{ "binding": "DATA", "bucket_name": "korp-corpora" }],
 
   "vars": {
-    // The language, e.g. "fkv": picks configs/<KORP_LANG>/ in R2
+    // The language, e.g. "fkv": picks langs/<KORP_LANG>/ in R2
     "KORP_LANG": "fkv",
-    // The corpora the container fetches (and the only ones it may fetch),
-    // space-separated CWB names (lowercase, as in the registry), e.g.
-    // "fkv_admin_20210319 fkv_bible_20210319". Per language: the file names
-    // in corpus_configs/<lang>/corpora/.
-    "CORPORA": "",
     // Container size, as JSON: {"vcpu": 1, "memoryMib": 1024, "diskMb": 2000},
     // or a named type like "\"standard-1\"". Empty: DEFAULT_RESOURCES in src/index.ts.
     "CONTAINER_INSTANCE": "",

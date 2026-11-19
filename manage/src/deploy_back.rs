@@ -1,32 +1,22 @@
 //! Deploy the Korp Worker of one language (`korp-<lang>`): korp-backend in a
 //! container behind `/api/*`, see `worker/src/index.ts`.
 //!
-//! One Worker per language, all from the template `worker/wrangler.jsonc`. For
-//! a language, this:
+//! One Worker per language, all from the template `worker/wrangler.jsonc` and
+//! the same code (`worker/src/index.ts`). For a language, this:
 //!
-//! 1. reads the language's corpora from the file names in
-//!    `gtweb2_config/corpus_configs/<lang>/corpora/` (→ var `CORPORA`),
-//! 2. checks that R2 has them (bucket `korp-corpora`, see below),
-//! 3. type-checks the Worker (`npm run check` in `worker/`),
-//! 4. writes `worker/.build/<lang>/wrangler.json`: the template with the
-//!    Worker name, `KORP_LANG`, `CORPORA` and the image pinned by digest,
-//! 5. runs `wrangler deploy` with it, with the secrets in
+//! 1. checks that R2 has a current release of the language (`manage data
+//!    upload <lang>` makes one; the Worker reads it when the container starts),
+//! 2. type-checks the Worker (`npm run check` in `worker/`),
+//! 3. writes `worker/.build/<lang>/wrangler.json`: the template with the
+//!    Worker name, `KORP_LANG` and the image pinned by digest,
+//! 4. runs `wrangler deploy` with it, with the secrets in
 //!    `worker/secrets.<account id>.env` (created on the first deploy: a random
 //!    `ADMIN_TOKEN`),
-//! 6. restarts the container (`POST /admin/restart`): Durable-Object containers
-//!    don't restart on deploy, and a new container fetches the current corpora.
+//! 5. restarts the container (`POST /admin/restart`): Durable-Object containers
+//!    don't restart on deploy, and a new container fetches the current release.
 //!
 //! Building and pushing the image is the caller's job; this gets the pushed
 //! image as `registry.cloudflare.com/<account>/korp-backend@sha256:…`.
-//!
-//! R2 layout (bucket `korp-corpora`, shared by all languages of an account):
-//!
-//! ```text
-//! configs/<lang>/<version>.tar.zst     corpus_configs/<lang>/ (attributes/, corpora/, modes/)
-//! configs/<lang>/current               the version to use
-//! corpora/<corpus>/<version>.tar.zst   registry/<corpus> + data/<dir>/ of one CWB corpus
-//! corpora/<corpus>/current             the version to use
-//! ```
 
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::fs::OpenOptionsExt;
@@ -38,8 +28,7 @@ use serde_json::{Value, json};
 
 use crate::childprocess::child_exit_ok;
 
-/// The R2 bucket with corpus configs and corpora (binding DATA in the Worker).
-pub const BUCKET: &str = "korp-corpora";
+use crate::corpora::BUCKET;
 
 /// A valid but nonexistent image, for `--dry-run` (wrangler accepts it there).
 pub const PLACEHOLDER_IMAGE_DIGEST: &str =
@@ -62,16 +51,13 @@ pub fn worker_name(lang: &str) -> String {
 
 pub fn deploy(opts: &Options) -> anyhow::Result<()> {
     let worker_dir = opts.manage_dir.join("worker");
-    let corpora = corpora_of_lang(&opts.manage_dir.join("..").join("gtweb2_config"), opts.lang)?;
-    tracing::info!(lang = opts.lang, ?corpora, "corpora from the corpus config");
-
     ensure_npm_install(&worker_dir)?;
-    check_r2(opts, &worker_dir, &corpora)?;
+    check_r2(opts, &worker_dir)?;
 
     tracing::info!("type-check the Worker (npm run check)");
     run(Command::new("npm").args(["run", "--silent", "check"]).current_dir(&worker_dir).stdout(Stdio::null()))?;
 
-    let config_path = write_wrangler_json(opts, &worker_dir, &corpora)?;
+    let config_path = write_wrangler_json(opts, &worker_dir)?;
     let secrets_path = ensure_secrets_file(&worker_dir, opts.account_id)?;
 
     let config = config_path.to_str().context("non-UTF-8 path")?;
@@ -105,28 +91,6 @@ pub fn deploy(opts: &Options) -> anyhow::Result<()> {
         ),
     }
     Ok(())
-}
-
-/// The corpus names of a language: the file names (without .yaml) in
-/// corpus_configs/<lang>/corpora/, lowercase like the CWB registry names.
-pub fn corpora_of_lang(gtweb2_config: &Path, lang: &str) -> anyhow::Result<Vec<String>> {
-    let dir = gtweb2_config.join("corpus_configs").join(lang).join("corpora");
-    let mut corpora = Vec::new();
-    for entry in std::fs::read_dir(&dir).with_context(|| format!("can't read {}", dir.display()))? {
-        let path = entry?.path();
-        if path.extension().is_some_and(|ext| ext == "yaml") {
-            let name = path.file_stem().and_then(|s| s.to_str()).context("non-UTF-8 file name")?;
-            if !name.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_' || c == '-') {
-                bail!("corpus name {name:?} ({}) isn't lowercase [a-z0-9_-]", path.display());
-            }
-            corpora.push(name.to_string());
-        }
-    }
-    if corpora.is_empty() {
-        bail!("no corpora (*.yaml) in {}", dir.display());
-    }
-    corpora.sort();
-    Ok(corpora)
 }
 
 /// `npx wrangler` in worker/, for the given account.
@@ -164,39 +128,49 @@ fn ensure_npm_install(worker_dir: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Checks that R2 has the current version of the language's corpus config and
-/// of each corpus. Missing objects are errors, or warnings with --dry-run.
-fn check_r2(opts: &Options, worker_dir: &Path, corpora: &[String]) -> anyhow::Result<()> {
-    let prefixes = std::iter::once(format!("configs/{}", opts.lang))
-        .chain(corpora.iter().map(|corpus| format!("corpora/{corpus}")));
-    let mut missing = Vec::new();
-    for prefix in prefixes {
-        let key = format!("{BUCKET}/{prefix}/current");
-        let output = wrangler(worker_dir, opts.account_id)
-            .args(["wrangler", "r2", "object", "get", &key, "--remote", "--pipe"])
-            .stderr(Stdio::null())
-            .output()?;
-        let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if output.status.success() && !version.is_empty() {
-            tracing::info!("R2: {prefix} is at {version}");
-        } else {
-            missing.push(prefix);
+/// `wrangler r2 object get <bucket>/<key> --remote --pipe`: the object's
+/// contents, or None if it can't be read.
+fn r2_get(opts: &Options, worker_dir: &Path, key: &str) -> anyhow::Result<Option<String>> {
+    let output = wrangler(worker_dir, opts.account_id)
+        .args(["wrangler", "r2", "object", "get", &format!("{BUCKET}/{key}"), "--remote", "--pipe"])
+        .stderr(Stdio::null())
+        .output()?;
+    Ok(output.status.success().then(|| String::from_utf8_lossy(&output.stdout).into_owned()))
+}
+
+/// Checks that R2 has a current release of the language (the Worker reads it
+/// when it starts the container). Missing is an error, or a warning with --dry-run.
+fn check_r2(opts: &Options, worker_dir: &Path) -> anyhow::Result<()> {
+    let lang = opts.lang;
+    let problem = match r2_get(opts, worker_dir, &format!("langs/{lang}/current"))? {
+        Some(id) if !id.trim().is_empty() => {
+            let id = id.trim();
+            match r2_get(opts, worker_dir, &format!("langs/{lang}/{id}.json"))? {
+                Some(json) => {
+                    let release: Value = serde_json::from_str(&json)
+                        .with_context(|| format!("langs/{lang}/{id}.json isn't JSON"))?;
+                    let corpora: Vec<&str> = release["corpora"]
+                        .as_object()
+                        .map(|c| c.keys().map(String::as_str).collect())
+                        .unwrap_or_default();
+                    tracing::info!("R2: {lang} is at release {id}, {} corpora: {}", corpora.len(), corpora.join(" "));
+                    return Ok(());
+                }
+                None => format!("langs/{lang}/current names {id}, but langs/{lang}/{id}.json isn't in R2"),
+            }
         }
-    }
-    if missing.is_empty() {
-        return Ok(());
-    }
-    let message = format!("not in R2 bucket {BUCKET} (no <prefix>/current): {}", missing.join(", "));
+        _ => format!("no release of {lang} in R2 bucket {BUCKET} (run `manage data upload {lang}`)"),
+    };
     if opts.dry_run {
-        eprintln!("WARNING: {message}");
+        eprintln!("WARNING: {problem}");
         Ok(())
     } else {
-        bail!("{message}")
+        bail!("{problem}")
     }
 }
 
 /// Writes worker/.build/<lang>/wrangler.json from the template, and returns its path.
-fn write_wrangler_json(opts: &Options, worker_dir: &Path, corpora: &[String]) -> anyhow::Result<PathBuf> {
+fn write_wrangler_json(opts: &Options, worker_dir: &Path) -> anyhow::Result<PathBuf> {
     let template_path = worker_dir.join("wrangler.jsonc");
     let text = std::fs::read_to_string(&template_path)?;
     let mut config: Value = jsonc_parser::parse_to_serde_value(&text, &Default::default())
@@ -213,7 +187,6 @@ fn write_wrangler_json(opts: &Options, worker_dir: &Path, corpora: &[String]) ->
     *images = json!({ "korp": { "image": opts.image } });
     let vars = config.pointer_mut("/vars").and_then(Value::as_object_mut).context("wrangler.jsonc: no vars")?;
     vars.insert("KORP_LANG".into(), json!(opts.lang));
-    vars.insert("CORPORA".into(), json!(corpora.join(" ")));
 
     let dir = worker_dir.join(".build").join(opts.lang);
     std::fs::create_dir_all(&dir)?;
