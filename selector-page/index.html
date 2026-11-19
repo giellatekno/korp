@@ -12,7 +12,7 @@
         :root {
             --bg: #f6f5f1;
             --surface: #ffffff;
-            --surface-hover: #fbfbf9;
+            --row-hover: #f1f7f6;
             --text: #1a1f24;
             --muted: #5b6470;
             --faint: #8a929c;
@@ -21,20 +21,20 @@
             --accent: #0b6b72;
             --accent-soft: #e2f0ef;
             --accent-text: #08575d;
-            --bar: #0b6b72;
-            --bar-track: #ecebe6;
+            --track: #ecebe6;
             --focus: #0b6b72;
             --shadow: 0 1px 2px rgba(20, 24, 28, .04), 0 6px 18px -8px rgba(20, 24, 28, .12);
 
             --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
             --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "Noto Serif", Georgia, serif;
+            --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
             --radius: 14px;
         }
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #101417;
                 --surface: #171d21;
-                --surface-hover: #1c2328;
+                --row-hover: #1b2629;
                 --text: #e8ecef;
                 --muted: #a3adb6;
                 --faint: #75808a;
@@ -43,8 +43,7 @@
                 --accent: #5ec4c2;
                 --accent-soft: #15302f;
                 --accent-text: #7fd6d3;
-                --bar: #4fb3b1;
-                --bar-track: #232b30;
+                --track: #232b30;
                 --focus: #7fd6d3;
                 --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -12px rgba(0, 0, 0, .6);
             }
@@ -66,7 +65,7 @@
 
         .wrap {
             width: 100%;
-            max-width: 1080px;
+            max-width: 920px;
             margin: 0 auto;
             padding: 0 clamp(16px, 4vw, 32px);
         }
@@ -75,9 +74,7 @@
         :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
 
         /* ---------- header ---------- */
-        header.site {
-            border-bottom: 1px solid var(--border);
-        }
+        header.site { border-bottom: 1px solid var(--border); }
         header.site .wrap {
             display: flex;
             align-items: center;
@@ -97,30 +94,14 @@
         header.site nav a { color: var(--muted); text-decoration: none; }
         header.site nav a:hover { color: var(--text); }
 
-        /* ---------- hero ---------- */
-        .hero { padding: clamp(32px, 5vw, 52px) 0 clamp(24px, 3.5vw, 36px); }
-        .eyebrow {
-            margin: 0 0 10px;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            color: var(--accent-text);
-        }
-        h1 {
-            margin: 0;
-            font-family: var(--font-serif);
-            font-weight: 600;
-            font-size: clamp(32px, 5vw, 46px);
-            line-height: 1.1;
-            letter-spacing: -.015em;
-            max-width: 22ch;
-            text-wrap: balance;
-        }
+        /* ---------- intro ---------- */
+        .hero { padding: clamp(32px, 5vw, 52px) 0 clamp(24px, 3.5vw, 32px); }
+        h1 { margin: 0; line-height: 0; }
+        .korp-logo { display: block; height: clamp(48px, 7vw, 64px); width: auto; fill: currentColor; }
         .lede {
-            margin: 16px 0 0;
-            max-width: 64ch;
-            font-size: clamp(16px, 2vw, 18px);
+            margin: 18px 0 0;
+            max-width: 62ch;
+            font-size: clamp(17px, 2.1vw, 19.5px);
             color: var(--muted);
             text-wrap: pretty;
         }
@@ -149,7 +130,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
         }
         .toolbar[hidden] { display: none; }
         .search {
@@ -192,7 +173,7 @@
         .segmented {
             display: inline-flex;
             padding: 3px;
-            background: var(--bar-track);
+            background: var(--track);
             border-radius: 10px;
         }
         .segmented button {
@@ -213,76 +194,58 @@
             font-weight: 600;
         }
 
-        /* ---------- language grid ---------- */
-        .grid {
+        /* ---------- language list ---------- */
+        .list {
             list-style: none;
             margin: 0;
             padding: 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-            gap: 14px;
-        }
-        .grid li[hidden] { display: none; }
-
-        .card {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            height: 100%;
-            padding: 18px 20px 18px;
-            color: inherit;
-            text-decoration: none;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            transition: border-color .15s ease, transform .15s ease, background-color .15s ease;
+            overflow: hidden;
         }
-        .card:hover { border-color: var(--accent); background: var(--surface-hover); transform: translateY(-2px); }
-        .card:focus-visible { outline-offset: 2px; border-radius: var(--radius); }
+        .list li { border-top: 1px solid var(--border); }
+        .list li:first-child, .list li.first { border-top: 0; }
+        .list li[hidden] { display: none; }
 
-        .card-top {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        .name {
-            display: block;
-            font-size: 19px;
-            font-weight: 650;
-            line-height: 1.25;
-            letter-spacing: -.005em;
-        }
-        .endonym {
-            display: block;
-            margin-top: 2px;
-            font-family: var(--font-serif);
-            font-style: italic;
-            font-size: 15px;
-            color: var(--muted);
-        }
-        .code {
-            flex: none;
-            padding: 3px 8px;
-            font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: .04em;
-            color: var(--accent-text);
-            background: var(--accent-soft);
-            border-radius: 6px;
-        }
-
-        .size { display: block; margin-top: auto; }
-        .size-row {
+        .row {
             display: flex;
             align-items: baseline;
             justify-content: space-between;
-            gap: 8px;
+            gap: 16px;
+            padding: 13px 20px;
+            color: inherit;
+            text-decoration: none;
+            transition: background-color .12s ease;
+        }
+        .row:hover { background: var(--row-hover); }
+        .row:focus-visible { outline-offset: -2px; border-radius: 0; }
+
+        .label { min-width: 0; }
+        .name {
+            font-size: 17px;
+            font-weight: 650;
+            letter-spacing: -.005em;
+        }
+        .row:hover .name { color: var(--accent-text); }
+        .endonym {
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: 16px;
+            color: var(--muted);
+        }
+        .code {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--faint);
+        }
+        .count {
+            flex: none;
             font-size: 14px;
             color: var(--muted);
+            white-space: nowrap;
         }
         .tokens {
             font-variant-numeric: tabular-nums;
@@ -290,46 +253,14 @@
             font-size: 15px;
             color: var(--text);
         }
-        .go {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            color: var(--accent-text);
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .go svg { width: 14px; height: 14px; transition: transform .15s ease; }
-        .card:hover .go svg { transform: translateX(3px); }
-
-        .bar {
-            display: block;
-            height: 6px;
-            margin-top: 8px;
-            border-radius: 99px;
-            background: var(--bar-track);
-            overflow: hidden;
-        }
-        .bar span {
-            display: block;
-            height: 100%;
-            width: var(--w, 0%);
-            border-radius: inherit;
-            background: var(--bar);
-        }
 
         .empty {
-            margin: 8px 0 0;
+            margin: 0;
             padding: 28px;
             text-align: center;
             color: var(--muted);
             border: 1px dashed var(--border-strong);
             border-radius: var(--radius);
-        }
-
-        .note {
-            margin: 18px 0 0;
-            font-size: 13px;
-            color: var(--faint);
         }
 
         /* ---------- footer ---------- */
@@ -360,7 +291,11 @@
             .search { max-width: none; flex-basis: auto; }
             .sort { justify-content: space-between; }
             .stats dd { font-size: 22px; }
-            .card { padding: 16px; }
+            .row { padding: 12px 16px; gap: 12px; }
+            .name { font-size: 16px; }
+            .endonym { font-size: 15px; }
+            /* too narrow for one line: English name on top, native name + code below */
+            .label .name { display: block; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -441,15 +376,14 @@ c15.1-17.1,24.4-39.4,25.5-61.2c0-0.3,0.1-0.8,0.1-1.4C970.3,85,953.6,54.9,939,38.
             </a>
             <nav aria-label="External links">
                 <a class="optional" href="https://giellatekno.uit.no/">Giellatekno</a>
-                <a href="https://spraakbanken.gu.se/en/tools/korp">About Korp</a>
+                <a href="https://sprakbanken.se/en/platforms/korp">About Korp</a>
             </nav>
         </div>
     </header>
 
     <main class="wrap">
         <section class="hero">
-            <p class="eyebrow">Korp corpus search</p>
-            <h1>Search text corpora in Sámi and other minority languages</h1>
+            <h1><svg class="korp-logo" viewBox="0 0 48.916 15.61" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Korp"><title>Korp</title><g transform="translate(-10.694 -109.22)"> <g transform="matrix(.26458 0 0 .26458 -34.207 65.686)" aria-label="Korp"> <path d="m169.71 174.49v37.333h2.9333v-18.773l16.267 18.773h3.7333l-17.227-19.84 16.427-17.493h-3.7333l-15.467 16.64v-16.64z" /> <path d="m193.6 199.55c0 7.4133 5.44 12.8 12.587 12.8s12.587-5.3867 12.587-12.8-5.44-12.8-12.587-12.8-12.587 5.3867-12.587 12.8zm2.8267 0c0-5.92 4.2133-10.187 9.76-10.187s9.76 4.2667 9.76 10.187c0 5.92-4.2133 10.187-9.76 10.187s-9.76-4.2667-9.76-10.187z" /> <path d="m227.84 187.29h-2.7733v24.533h2.7733v-14.933c0-4.16 1.3333-7.52 4.96-7.52 1.28 0 2.1333 0.37333 3.2 1.1733l1.5467-2.2933c-1.12-1.0667-2.56-1.4933-4.1067-1.4933-2.3467 0-4.3733 1.6-5.6 4.1067z" /> <path d="m244.75 223.55v-17.493c1.6533 3.84 4.9067 6.2933 9.12 6.2933 6.56 0 11.84-4.9067 11.84-12.8s-5.28-12.8-11.84-12.8c-4.2133 0-7.4667 2.4533-9.12 6.2933v-5.76h-2.7733v36.267zm18.187-24c0 6.4-4.2133 10.187-9.44 10.187-4.5333 0-8.7467-4.32-8.7467-10.187 0-5.8667 4.2133-10.187 8.7467-10.187 5.2267 0 9.44 3.7867 9.44 10.187z" /> </g> <g transform="matrix(.085621 0 0 .085621 -17.323 103.13)" fill="#f0581a"> <g fill="#f0581a"> <path class="st1" d="m863.2 124.7c-11.632 12.502-15.14 33.069-32.857 39.26-13.941 7.7684-31.593 13.715-38.056 29.732-5.9074 11.911 9.6296 26.14 19.08 14.806 5.2936-0.57134-6.9036 6.9851 2.4628 6.8274 3.9457 0.0218 11.631-0.92193 11.236 2.0649 5.2848 0.0788 9.7472-2.8036 4.5303 2.3128-4.6056 11.719-19.646 5.0731-28.871 9.1629-5.1659 2.9323-22.579-1.4619-9.4364-4.4292 4.3017 1.2591 11.362-3.0939 3.2669-1.5219-6.4074-0.83211-17.713-0.30367-20.245-0.69986 1.5596-8.4137 23.821 0.25757 13.071-11.906-6.9889-6.1258-17.401-5.062-24.275-11.432 1.7644-6.6942-14.865-2.955-9.7303-11.884-4.4554 0.36242-9.9586 0.80993-8.7929-1.3966-7.2263 4.5653-16.468 5.35-24.852 9.546-11.997 4.7726-24.196 9.4936-34.579 17.288-10.116 6.2165-21.979 10.786-29.098-0.75113-15.358-0.79695 4.1418-11.312 9.9391-13.39 4.0238-1.7969 16.016-7.8953 13.398-7.5794-4.4631 3.5126-14.187 3.9992-5.8385-2.4598 4.7969-5.3353 15.817-6.1894 17.247-13.517-9.6454 0.21054-24.871 8.5508-30.759 4.3684 4.9624-12.354 22.042-10.901 31.22-19.318 10.914-3.5333 15.846-14.082 24.386-20.494 10.422-6.8493 25.294-6.9956 32.483-18.325 6.5257-11.4 19.149-11.717 30.4-13.328 14.212-3.8521 28.584-8.15 43.466-7.4532 13.801-2.3211 19.939-19.891 34.868-19.207 12.205-1.2637 22.8-10.904 35.236-9.6526 11.646 4.7741-8.7491 6.4121-11.777 10.571-7.0328 2.0968-12.431 13.885-0.82797 11.357 5.7787-0.26786 19.664 0.84101 19.008 5.5908-12.392 1.531-27.576 4.6139-30.199 19.227-1.1996 2.5302-2.7591 5.0095-5.1052 6.6307zm-46.4 94.7c-3.5466 4.698-10.232-1.491-1.9767-0.27465zm6.5 0.2c-3.6322-1.6758-2.9076 3.9425 0 0z" clip-rule="evenodd" fill="#f0581a" fill-rule="evenodd" /> </g> </g> </g></svg></h1>
             <p class="lede">
                 We run one Korp instance for each language we have a corpus of.
                 Pick a language below to search its texts by word, lemma or grammatical
@@ -479,129 +413,128 @@ c15.1-17.1,24.4-39.4,25.5-61.2c0-0.3,0.1-0.8,0.1-1.4C970.3,85,953.6,54.9,939,38.
             </div>
 
             <!--
-                One <li> per Korp instance. To add a language, copy a <li>, and set
-                data-tokens (plain integer) — the shown number, bar and totals are
+                One <li> per Korp instance. To add a language, copy a <li> and set
+                data-tokens (plain integer); the shown number and the totals are
                 computed from it.
             -->
-            <ul class="grid" id="langs">
+            <ul class="list" id="langs">
                 <li data-name="Eastern Mari" data-code="mhr" data-tokens="57375100">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/mhr">
-                        <span class="card-top"><span><span class="name">Eastern Mari</span><span class="endonym" lang="mhr">Олык марий йылме</span></span><span class="code">mhr</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">57,375,100</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/mhr">
+                        <span class="label"><span class="name">Eastern Mari</span> <span class="endonym" lang="mhr">Олык марий йылме</span> <span class="code">mhr</span></span>
+                        <span class="count"><span class="tokens">57,375,100</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Erzya" data-code="myv" data-tokens="14050585">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/myv">
-                        <span class="card-top"><span><span class="name">Erzya</span><span class="endonym" lang="myv">Эрзянь кель</span></span><span class="code">myv</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">14,050,585</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/myv">
+                        <span class="label"><span class="name">Erzya</span> <span class="endonym" lang="myv">Эрзянь кель</span> <span class="code">myv</span></span>
+                        <span class="count"><span class="tokens">14,050,585</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Faroese" data-code="fao" data-tokens="25451390">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/fao">
-                        <span class="card-top"><span><span class="name">Faroese</span><span class="endonym" lang="fo">Føroyskt</span></span><span class="code">fao</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">25,451,390</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/fao">
+                        <span class="label"><span class="name">Faroese</span> <span class="endonym" lang="fo">Føroyskt</span> <span class="code">fao</span></span>
+                        <span class="count"><span class="tokens">25,451,390</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Hill Mari" data-code="mrj" data-tokens="6252302">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/mrj">
-                        <span class="card-top"><span><span class="name">Hill Mari</span><span class="endonym" lang="mrj">Кырык мары йӹлмӹ</span></span><span class="code">mrj</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">6,252,302</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/mrj">
+                        <span class="label"><span class="name">Hill Mari</span> <span class="endonym" lang="mrj">Кырык мары йӹлмӹ</span> <span class="code">mrj</span></span>
+                        <span class="count"><span class="tokens">6,252,302</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Inari Sámi" data-code="smn" data-tokens="1809537">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/smn">
-                        <span class="card-top"><span><span class="name">Inari Sámi</span><span class="endonym" lang="smn">Anarâškielâ</span></span><span class="code">smn</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">1,809,537</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/smn">
+                        <span class="label"><span class="name">Inari Sámi</span> <span class="endonym" lang="smn">Anarâškielâ</span> <span class="code">smn</span></span>
+                        <span class="count"><span class="tokens">1,809,537</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Komi" data-code="kpv" data-tokens="963802">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/kpv">
-                        <span class="card-top"><span><span class="name">Komi</span><span class="endonym" lang="kpv">Коми кыв</span></span><span class="code">kpv</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">963,802</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/kpv">
+                        <span class="label"><span class="name">Komi</span> <span class="endonym" lang="kpv">Коми кыв</span> <span class="code">kpv</span></span>
+                        <span class="count"><span class="tokens">963,802</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Komi-Permyak" data-code="koi" data-tokens="241614">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/koi">
-                        <span class="card-top"><span><span class="name">Komi-Permyak</span><span class="endonym" lang="koi">Перем коми кыв</span></span><span class="code">koi</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">241,614</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/koi">
+                        <span class="label"><span class="name">Komi-Permyak</span> <span class="endonym" lang="koi">Перем коми кыв</span> <span class="code">koi</span></span>
+                        <span class="count"><span class="tokens">241,614</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Kven" data-code="fkv" data-tokens="498966">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/fkv">
-                        <span class="card-top"><span><span class="name">Kven</span><span class="endonym" lang="fkv">Kainun kieli</span></span><span class="code">fkv</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">498,966</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/fkv">
+                        <span class="label"><span class="name">Kven</span> <span class="endonym" lang="fkv">Kainun kieli</span> <span class="code">fkv</span></span>
+                        <span class="count"><span class="tokens">498,966</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Livvi-Karelian" data-code="olo" data-tokens="298787">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/olo">
-                        <span class="card-top"><span><span class="name">Livvi-Karelian</span><span class="endonym" lang="olo">Livvin kieli</span></span><span class="code">olo</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">298,787</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/olo">
+                        <span class="label"><span class="name">Livvi-Karelian</span> <span class="endonym" lang="olo">Livvin kieli</span> <span class="code">olo</span></span>
+                        <span class="count"><span class="tokens">298,787</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Lule Sámi" data-code="smj" data-tokens="1809537">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/smj">
-                        <span class="card-top"><span><span class="name">Lule Sámi</span><span class="endonym" lang="smj">Julevsámegiella</span></span><span class="code">smj</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">1,809,537</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/smj">
+                        <span class="label"><span class="name">Lule Sámi</span> <span class="endonym" lang="smj">Julevsámegiella</span> <span class="code">smj</span></span>
+                        <span class="count"><span class="tokens">1,809,537</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Meänkieli" data-code="fit" data-tokens="447462">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/fit">
-                        <span class="card-top"><span><span class="name">Meänkieli</span><span class="endonym" lang="fit">Meänkieli</span></span><span class="code">fit</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">447,462</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/fit">
+                        <span class="label"><span class="name">Meänkieli</span> <span class="endonym" lang="fit">Meänkieli</span> <span class="code">fit</span></span>
+                        <span class="count"><span class="tokens">447,462</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Moksha" data-code="mdf" data-tokens="12792781">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/mdf">
-                        <span class="card-top"><span><span class="name">Moksha</span><span class="endonym" lang="mdf">Мокшень кяль</span></span><span class="code">mdf</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">12,792,781</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/mdf">
+                        <span class="label"><span class="name">Moksha</span> <span class="endonym" lang="mdf">Мокшень кяль</span> <span class="code">mdf</span></span>
+                        <span class="count"><span class="tokens">12,792,781</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="North Sámi" data-code="sme" data-tokens="39261373">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/sme">
-                        <span class="card-top"><span><span class="name">North Sámi</span><span class="endonym" lang="se">Davvisámegiella</span></span><span class="code">sme</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">39,261,373</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/sme">
+                        <span class="label"><span class="name">North Sámi</span> <span class="endonym" lang="se">Davvisámegiella</span> <span class="code">sme</span></span>
+                        <span class="count"><span class="tokens">39,261,373</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Skolt Sámi" data-code="sms" data-tokens="251351">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/sms">
-                        <span class="card-top"><span><span class="name">Skolt Sámi</span><span class="endonym" lang="sms">Nuõrttsääʹmǩiõll</span></span><span class="code">sms</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">251,351</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/sms">
+                        <span class="label"><span class="name">Skolt Sámi</span> <span class="endonym" lang="sms">Nuõrttsääʹmǩiõll</span> <span class="code">sms</span></span>
+                        <span class="count"><span class="tokens">251,351</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="South Sámi" data-code="sma" data-tokens="2030158">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/sma">
-                        <span class="card-top"><span><span class="name">South Sámi</span><span class="endonym" lang="sma">Åarjelsaemien gïele</span></span><span class="code">sma</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">2,030,158</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/sma">
+                        <span class="label"><span class="name">South Sámi</span> <span class="endonym" lang="sma">Åarjelsaemien gïele</span> <span class="code">sma</span></span>
+                        <span class="count"><span class="tokens">2,030,158</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Udmurt" data-code="udm" data-tokens="271895">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/udm">
-                        <span class="card-top"><span><span class="name">Udmurt</span><span class="endonym" lang="udm">Удмурт кыл</span></span><span class="code">udm</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">271,895</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/udm">
+                        <span class="label"><span class="name">Udmurt</span> <span class="endonym" lang="udm">Удмурт кыл</span> <span class="code">udm</span></span>
+                        <span class="count"><span class="tokens">271,895</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Veps" data-code="vep" data-tokens="1110261">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/vep">
-                        <span class="card-top"><span><span class="name">Veps</span><span class="endonym" lang="vep">Vepsän kel’</span></span><span class="code">vep</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">1,110,261</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/vep">
+                        <span class="label"><span class="name">Veps</span> <span class="endonym" lang="vep">Vepsän kel’</span> <span class="code">vep</span></span>
+                        <span class="count"><span class="tokens">1,110,261</span> tokens</span>
                     </a>
                 </li>
                 <li data-name="Võro" data-code="vro" data-tokens="668088">
-                    <a class="card" href="https://gtweb-02.uit.no/korp/vro">
-                        <span class="card-top"><span><span class="name">Võro</span><span class="endonym" lang="vro">Võro kiil</span></span><span class="code">vro</span></span>
-                        <span class="size"><span class="size-row"><span><span class="tokens">668,088</span> tokens</span><span class="go">Open<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></span><span class="bar"><span></span></span></span>
+                    <a class="row" href="https://gtweb-02.uit.no/korp/vro">
+                        <span class="label"><span class="name">Võro</span> <span class="endonym" lang="vro">Võro kiil</span> <span class="code">vro</span></span>
+                        <span class="count"><span class="tokens">668,088</span> tokens</span>
                     </a>
                 </li>
             </ul>
             <p class="empty" id="empty" hidden>No language matches “<span id="empty-q"></span>”.</p>
-            <p class="note">Bars show corpus size on a logarithmic scale, so the smaller corpora stay visible.</p>
         </section>
     </main>
 
     <footer class="site">
         <div class="wrap">
             <p>Run by <a href="https://giellatekno.uit.no/">Giellatekno</a>, UiT The Arctic University of Norway.</p>
-            <p>Built on <a href="https://spraakbanken.gu.se/en/tools/korp">Korp</a> by Språkbanken Text.</p>
+            <p>Built on <a href="https://sprakbanken.se/en/platforms/korp">Korp</a> by Språkbanken Text.</p>
         </div>
     </footer>
 
@@ -612,16 +545,8 @@ c15.1-17.1,24.4-39.4,25.5-61.2c0-0.3,0.1-0.8,0.1-1.4C970.3,85,953.6,54.9,939,38.
             const fmt = n => n.toLocaleString("en-US");
             const tokens = li => Number(li.dataset.tokens) || 0;
 
-            // Totals and size bars (log scale; smallest corpus still gets a sliver).
             const sizes = items.map(tokens);
-            const max = Math.max(...sizes), min = Math.min(...sizes);
-            const lo = Math.log10(min) - 0.5, hi = Math.log10(max);
-            for (const li of items) {
-                const t = tokens(li);
-                li.querySelector(".tokens").textContent = fmt(t);
-                const w = t > 0 ? 100 * (Math.log10(t) - lo) / (hi - lo) : 0;
-                li.querySelector(".bar span").style.setProperty("--w", w.toFixed(1) + "%");
-            }
+            for (const li of items) li.querySelector(".tokens").textContent = fmt(tokens(li));
             document.getElementById("stat-langs").textContent = items.length;
             document.getElementById("stat-tokens").textContent =
                 fmt(Math.round(sizes.reduce((a, b) => a + b, 0) / 1e5) / 10) + " million";
@@ -638,7 +563,10 @@ c15.1-17.1,24.4-39.4,25.5-61.2c0-0.3,0.1-0.8,0.1-1.4C970.3,85,953.6,54.9,939,38.
                 buttons.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sort === key)));
                 try { localStorage.setItem("korp-selector-sort", key); } catch (_) {}
             };
-            buttons.forEach(b => b.addEventListener("click", () => sortBy(b.dataset.sort)));
+            buttons.forEach(b => b.addEventListener("click", () => {
+                sortBy(b.dataset.sort);
+                document.getElementById("filter").dispatchEvent(new Event("input"));
+            }));
             let saved = "name";
             try { saved = localStorage.getItem("korp-selector-sort") || "name"; } catch (_) {}
             sortBy(sorters[saved] ? saved : "name");
@@ -656,8 +584,10 @@ c15.1-17.1,24.4-39.4,25.5-61.2c0-0.3,0.1-0.8,0.1-1.4C970.3,85,953.6,54.9,939,38.
                 for (const li of items) {
                     const hit = !q || haystacks.get(li).includes(q);
                     li.hidden = !hit;
+                    li.classList.toggle("first", hit && shown === 0);
                     shown += hit;
                 }
+                list.hidden = shown === 0;
                 empty.hidden = shown > 0;
                 document.getElementById("empty-q").textContent = input.value.trim();
             });
