@@ -10,107 +10,66 @@ need to know (decisions, names, URLs) under the task.
 
 ## Context (for every task)
 
-- **Goal:** host Giellatekno's Korp (≈15 languages) on Cloudflare, replacing the
-  old on-prem gtweb-02 setup (`README.md` describes the old setup). Same
-  concepts as the Apertium deployment: `claude-log` sections 4 (architecture)
-  and 5 (Cloudflare gotchas); the code is in `~/gut/giellatekno/apertium`
-  (`deploy/cloudflare/src/index.ts`, `wrangler.jsonc`, `manage.py`).
+- **Goal:** host Giellatekno's Korp (18 languages + 3 combined instances) on
+  Cloudflare, replacing the old on-prem gtweb-02 setup (`README.md` still
+  describes the old setup). Same concepts as the Apertium deployment:
+  `claude-log` sections 4 (architecture) and 5 (Cloudflare gotchas); the code
+  is in `~/gut/giellatekno/apertium` (`deploy/cloudflare/src/index.ts`,
+  `wrangler.jsonc`, `manage.py`).
+- **Status (2026-11-19):** fkv runs end to end on the test account:
+  https://korp-fkv.uit-anders.workers.dev (frontend at `/`, API at `/api`,
+  corpora from R2). The other languages wait for their CWB data (task 7).
 - **Accounts:** test = "UiT / Anders Lorentsen" (`manage/CLOUDFLARE_ACCOUNT_ID`,
   has Workers Paid/Containers), prod = "Giellatekno" (no Workers Paid yet). Work
   on test.
-- **Management tool:** the Rust crate in `manage/` (replaces `tasks.py`). Run it
-  from `manage/`: `CLOUDFLARE_ACCOUNT_ID=$(cat CLOUDFLARE_ACCOUNT_ID) cargo run --release -- …`
+- **Management tool:** the Rust crate in `manage/` (binary `manage`). Run it
+  from `manage/`: `cargo run --release -- …` (the account id is read from the
+  file `CLOUDFLARE_ACCOUNT_ID`, the API token from `.CLOUDFLARE_API_TOKEN`).
+  Commands:
+  - `data upload|list|rollback|create-bucket` — corpora + corpus configs in R2
+  - `deploy <lang> [--dry-run]` — build frontend + backend image, push, deploy, restart
+  - `restart <lang>` — restart a language's container (next request loads the current release)
+  - `build back|front`, `push back` — the steps of `deploy` on their own
 - **Containers:** real Docker only, never podman (if `DOCKER_HOST` points to
-  podman, `unset DOCKER_HOST`). Builds need `--load`.
-- **Backend image:** `manage/containerfiles/Containerfile.backend`: one image
-  for all languages. Upstream korp-backend `dev` (9.0.0.dev0, FastAPI, port
-  8000) + CWB from `giellatekno.azurecr.io/corpusworkbench:3.5.1`. Expects CWB
-  data in `/corpora/{registry,data}` (the entrypoint rewrites registry
-  HOME/INFO paths) and the corpus config in `/corpus_config`. Tested locally
-  with fkv (`cwb-data/`, `gtweb2_config/corpus_configs/fkv`).
-- **Korp 9 renamed its API** (`/query` → `/concordance`, `corpus=` →
-  `corpora=`, …; upstream CHANGELOG). Frontend and backend versions must match.
+  podman, `unset DOCKER_HOST`; shells here often have it set). Builds need
+  `--load`; the tool builds with `--network host` because Anders's VPN (tun0,
+  MTU 1191) makes downloads on docker's bridge network hang.
+- **Versions:** frontend **korp-vue** (branch `api-v9`) + **korp-backend**
+  9.0.0.dev0, the combination Språkbanken runs. Both pinned by commit: `ARG
+  KORP_VUE_COMMIT` in `Containerfile.frontend`, `ARG KORP_BACKEND_COMMIT` in
+  `Containerfile.backend` (the only place the pins are). Update them together.
+  Korp 9 renamed its API (`/query` → `/concordance`, `corpus=` → `corpora=`,
+  `start`/`end` → `offset`/`limit`; upstream CHANGELOG).
 - **Config:** `gtweb2_config/`: corpus configs (`corpus_configs/<lang>/`),
-  frontend configs (`front/config-<lang>.yaml`), translations.
+  frontend configs (`front/config-<lang>.yaml`), translations. Our frontend
+  customisation (logos, footer, UI translations) is in `korp-vue-instance/`.
 - **Working style:** Anders runs anything that changes the Cloudflare accounts
-  (deploys, deletes, pushes, credentials); Claude prepares, verifies read-only,
-  dry-runs, and gives him the commands. Most of the repo is untracked: before
-  deleting a file, say if it's the only copy of something.
+  (deploys, deletes, pushes, credentials) unless he asks Claude to; Claude
+  prepares, verifies read-only, dry-runs, and gives him the commands. Before
+  deleting an untracked file, say if it's the only copy of something. Don't
+  commit Anders's staged submodule deletions (`.gitmodules`, `korp-backend`,
+  `korp-frontend`) with other work: use `git commit -- <paths>` or a worktree.
 
 ---
 
-## 1. Repo hygiene (small; do first) — DONE
+## Done
 
-Notes (2026-11-19):
-- Root `.gitignore` added (credentials, build output, big data,
-  `manage/korp-backend-fkv/`, `.claude/`). `manage/xxx`, `cloned/` and `x.py`
-  were already gone.
-- Deleted `cloudflare/` and root `containerfiles/`.
-- main was fast-forwarded to d102bd1 (the tool as it was, committed by the
-  task-2 session).
-- Docker build context = repo root (the root `.dockerignore` lets only
-  `gtweb2_config/` through; add `!logo_change/` in task 5). Came with task 2
-  (b975c95); the stale `manage/gtweb2_config/` was then deleted.
-- Left alone on purpose: the deleted submodules `korp-backend`/`korp-frontend`
-  and the tracked `.deb` (unstaged deletions in `git status`), and the untracked
-  `compile-cwb-mono/` and `claude-log`.
+### 1. Repo hygiene — DONE
 
-- Add a root `.gitignore`: credentials (`manage/.CLOUDFLARE_API_TOKEN`,
-  `manage/s3_compat_credentials`, `manage/xxx`, `**/.dev.vars`, `secrets*.env`),
-  build output (`target/`, `node_modules/`, `.wrangler/`, `manage/html/`,
-  `**/dist/`), big data (`cwb-data/`, `compile-cwb-mono/compiled_mono/`).
-- `manage/xxx` contains an API token in plain text: delete the file (Anders
-  decides whether to rotate the token).
-- Decide which untracked directories to commit (`manage/`, `compile-cwb-mono/`)
-  and which old ones to delete (`cloned/`, `cloudflare/`, root `containerfiles/`,
-  `manage/gtweb2_config/` (stale copy of `gtweb2_config/`), `x.py`, the `.deb`).
-- Commit (staged rename `repath.py` → `repath_cwb_registry.py` is pending).
+Root `.gitignore` (credentials, build output, big data, `.claude/`); old
+directories deleted. Docker build context = repo root, limited by the root
+`.dockerignore`. Left alone on purpose: the staged submodule deletions (see
+*Working style*), the untracked `compile-cwb-mono/` and `claude-log`.
 
-**Done when:** `git status` shows only intended files, and no secrets are
-committable.
+### 2. Management tool cleanup — DONE
 
-## 2. Management tool: clean up the command structure (small, independent) — DONE
+The `cf` subcommand level is gone; `Lang` (the list of known instances) is in
+`manage/src/lang.rs`. `tasks/` was later renamed to `manage/`.
 
-Everything is on Cloudflare now, so the `cf` subcommand level goes away:
-`manage build back`, `manage build front <lang>`, `manage push back`, `manage
-deploy …`. Remove dead code (`cf_get_worker`, `get` in `assets_upload.rs`,
-unused variables), the `sync-settings` command that only prints rclone hints
-(task 3 replaces it), and the `Instance` type if the new structure doesn't need
-it. Read the account id from `CLOUDFLARE_ACCOUNT_ID` (file) when the env var
-isn't set.
+### 3. Corpus data in R2 — DONE
 
-Don't build new features here: the deploy commands get rewritten in tasks 4
-and 5 once those processes are established.
-
-**Done when:** the tool compiles without warnings and `--help` shows the new
-structure; `build back` still builds the image.
-
-**Done (2026-11-18).** For the next tasks:
-- Commands: `build back`, `build front <lang>`, `push back` (build + `wrangler
-  containers push`), `deploy back <lang>` (`wrangler deploy` in
-  `korp-backend-<lang>/`), `deploy front <lang>`. `Lang` is in `src/lang.rs`;
-  `Instance`/`Side` are gone.
-- Account id: `--cf-account-id` / `CLOUDFLARE_ACCOUNT_ID`, else the file
-  `CLOUDFLARE_ACCOUNT_ID` in the current directory. The API token file is
-  only read by `deploy front`.
-- Docker build context is the repo root (the first ancestor with
-  `gtweb2_config/`), limited by the root `.dockerignore`; Containerfiles are
-  passed as `<root>/manage/containerfiles/<name>`. Task 5 must add
-  `!logo_change/` to `.dockerignore`.
-- Fixed: `deploy front` passed the API token and script name swapped to
-  `create_version`/`create_deployment` (untested against the API since).
-- `wrangler` is still run from `korp-backend-fkv/` (`WRANGLER_DIR` in
-  `main.rs`), which task 4 replaces.
-
-## 3. Corpus data in R2 (built and tested locally; the first real upload is Anders's)
-
-**State (2026-11-19):** the `data` command in `manage/src/corpora.rs` is built.
-It's tested against a local S3 server (VersityGW in Docker), not against R2:
-fkv upload, re-upload (no change), rollback, multipart (sme_news), and
-round-trip into the Korp 9 backend image (`/info`, `/concordance` OK). Still
-to do, by Anders: create the bucket and upload fkv (commands below).
-
-**Layout** (bucket `korp-corpora`, also in `manage data --help`):
+Bucket `korp-corpora` (test account), filled by `manage data upload <lang>`
+(`manage/src/corpora.rs`; layout also in `manage data --help`):
 
 ```
 corpora/<corpus>/<hash>.tar.zst   registry/<corpus> + data/<dir>/  → unpack into /corpora
@@ -118,175 +77,61 @@ configs/<lang>/<hash>.tar.zst     corpus_configs/<lang>/ contents → unpack int
 langs/<lang>/<release>.json       {"lang", "release", "created",
                                    "config": {"key", "size"},
                                    "corpora": {"<corpus>": {"key", "size"}, …}}
-langs/<lang>/current              text: the release id in use, e.g. 20261119T101500Z
+langs/<lang>/current              text: the release id in use, e.g. 20261119T082811Z
 ```
 
-Decisions:
-- **Versioned per language, not per corpus.** A *release* pins the config
-  archive and every corpus archive; `current` points to one. Rollback moves the
-  pointer (`data rollback <lang> [release]`). Apertium's rule is kept: if an
-  upload equals a release newer than `current` (rolled back from), the rollback
-  stays, with a warning.
-- **Archives are content-addressed**: `<hash>` = first 16 hex of sha256 of a
-  deterministic tar (sorted, no times or owners). Unchanged data isn't uploaded
-  again; unchanged everything makes no new release. Archives never change.
-- **The language's corpora come from its corpus config** (`corpora/*.yaml`),
-  not from name prefixes: sme's config also has `friis_*`, `leem_*`,
-  `itkonen_*`. A corpus the config lists but that isn't found locally is
-  taken from the current release; if it isn't there either: error, or left
-  out with `--skip-missing`.
-- **Corpus config in R2** (per language, versioned with the corpora), so a
-  config change needs only a restart, not a deploy.
-- **Upload via R2's S3 API** (multipart above 100 MB, 64 MB parts), with S3
-  credentials derived from the API token (key id = token id, secret =
-  sha256(token)). No R2 keys to manage, but the token needs R2 write access
-  (it can list buckets; writing is untested). Test hook: `KORP_S3_ENDPOINT` +
-  `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` use another S3 server.
-- **Sizes:** CWB data is already compressed: fkv 6.7 MB in total; sme_news
-  343 MB raw → 282 MB (zstd -19; -3 would be 308 MB), unpacks in <1 s. So the
-  download dominates cold start (task 4: measure from R2).
+- **Versioned per language**: a *release* pins the config archive and every
+  corpus archive; `current` points to one; `data rollback <lang> [release]`
+  moves the pointer. If an upload equals a release newer than `current`
+  (rolled back from), the rollback stays, with a warning.
+- **Content-addressed archives** (`<hash>` = first 16 hex of sha256 of a
+  deterministic tar): unchanged data isn't uploaded again, and a corpus used by
+  several instances (e.g. sme and smi) is stored once.
+- **A language's corpora come from its corpus config** (`corpora/*.yaml`), not
+  from name prefixes (sme's config also has `friis_*`, `leem_*`, `itkonen_*`).
+  A listed corpus that isn't found locally is taken from the current release;
+  if it isn't there either: error, or left out with `--skip-missing`.
+- Upload goes through R2's S3 API (multipart above 100 MB) with S3 credentials
+  derived from the API token. `--cwb-dir` defaults to `../cwb-data`.
+- Sizes: CWB data is already compressed (sme_news 343 MB → 282 MB with zstd
+  -19); the download dominates cold start.
+- In R2 now: fkv only (release `20261119T082811Z`, 6.65 MB, 5 corpora + config).
 
-Task 4 uses this: see its state below. Note: sme's config names the
-`*_20211118` corpora, while `compile-cwb-mono` made `*_20261026` (task 6).
+### 4. API Worker — DONE
 
-Commands for Anders (from `manage/`, with `CLOUDFLARE_ACCOUNT_ID` set):
+One Worker per instance, `korp-<lang>`, all from the template in
+`manage/worker/` (`README.md` there); per-language config generated into
+`worker/.build/<lang>/wrangler.json`. The Durable Object's container reads
+`langs/<lang>/current` at start and gets `DATA_URL=http://data.internal/<release>`
++ `CORPORA`; the Worker serves only archives named in a release of this
+language. Image pinned by digest. `/admin/restart` is authenticated
+(`ADMIN_TOKEN`).
 
-```
-cargo run --release -- data create-bucket
-cargo run --release -- data upload fkv --dry-run
-cargo run --release -- data upload fkv        # --cwb-dir defaults to ../cwb-data
-cargo run --release -- data list fkv
-```
+Measured on the test account: cold start 26 s from the first request (locally
+1.9 s), then ~0.2 s per request. Not broken down yet (container provisioning
+vs. download from R2); peak memory not measured.
 
-The old bucket `korp-data` can go once task 4 no longer uses it.
+Cleanup done: the old `korp-backend-fkv` Worker, its container app and bucket
+`korp-data`. Left: revoke the R2 S3 keys the old Worker used (dashboard); delete
+the Korp 8 images `korp-backend:8.3.0-*` from the registry.
 
-### Original task description
+### 5. Frontend — DONE (deployed 2026-11-19)
 
-How CWB data and corpus configs get into R2, in a form the backend container
-can fetch at startup. Read first: `manage/r2-data-notes.md` (takeaways from the
-old s3fs approach), Apertium's pair versioning (`claude-log` section 4, "Pair
-versioning rule").
+korp-vue, served as static assets by the same `korp-<lang>` Worker
+(`run_worker_first` only for `/api` and `/admin/*`), so no CORS and no separate
+frontend Worker. The API URL is computed in the browser (`api` next to the
+page). `korp-vue-instance/` holds settings (from `front/config-<lang>.yaml`),
+UiT + Giellatekno logos, our footer, and UI translations ported from the old
+ones by English text (~145 of ~330 strings; the rest show in English).
 
-- Format: probably one archive per corpus (`<corpus>.tar.zst`: registry file +
-  data dir), versioned with a `current` pointer like Apertium's pairs.
-- Where the corpus config goes (in R2 per language, or baked into something).
-- Upload: a management-tool command. `wrangler r2 object put` stops at ~315 MB;
-  sme's corpora are ~719 MB in total, so check per-archive sizes, and use
-  multipart upload if needed.
-- Sources: `cwb-data/` (fkv, old), `compile-cwb-mono/compiled_mono/` (sme,
-  new). The old bucket `korp-data` has the Korp-8 layout.
+Deployed with `manage deploy fkv`: the page loads with all 5 fkv corpora, and a
+concordance search through the API works. The old Korp 8 frontend Workers
+`korp-frontend-fkv`/`-sme` and `logo_change/` are deleted.
 
-**Done when:** fkv's corpora are in R2 in the new layout, uploaded by the tool,
-and the layout is documented (here and in the tool's help).
+Left (small): translations of attribute values
+(`gtweb2_config/translations/corpora-<lang>.json`) aren't ported to korp-vue.
 
-## 4. API Worker (backend on Cloudflare) — DONE
-
-**State (2026-11-19):** merged into main with task 3. One Worker per language
-(`korp-<lang>`), all from the same code and template in `manage/worker/`
-(`README.md` there); `manage deploy back <lang> [--dry-run]` (now `manage deploy <lang>`) builds, pushes,
-pins the image by digest, writes `worker/.build/<lang>/wrangler.json`,
-deploys and restarts. The Worker uses task 3's layout: at container start the
-Durable Object reads `langs/<lang>/current` and that release, passes
-`DATA_URL=http://data.internal/<release>` + `CORPORA`, and `DataHandler` serves
-only archives named in a release of this language. Tested locally (wrangler
-dev + local R2 filled by `data upload` via a local S3): `/api/info`,
-`/api/concordance`, restart; cold start 1.9 s for fkv.
-
-**Deployed (2026-11-19)** on the test account: https://korp-fkv.uit-anders.workers.dev
-(`/api/info`, `/api/concordance` OK). Cold start there: 26 s from the first
-request to the answer (local: 1.9 s), then ~0.2 s per request. Not yet
-broken down (container provisioning vs. download from R2); peak memory not
-measured. `restart` retries for 10 s while the Worker isn't reachable (right
-after the first deploy, workers.dev answers 404 / error 1042 for a moment).
-
-Cleanup done (2026-11-19): the old `korp-backend-fkv` Worker, its container
-application and the bucket `korp-data` are deleted on the test account (all its
-contents had local copies), and so is `manage/korp-backend-fkv/`. `manage
-restart <lang>` restarts a language's container. Left: the R2 S3 keys the old
-Worker used (revoke in the dashboard) and the Korp 8 images `korp-backend:8.3.0-*`
-in the registry.
-
-### Original task description
-
-
-Replace `manage/korp-backend-fkv/` (made from the containers template: deprecated
-`Container` class, image by tag, R2 S3 keys passed into the container) with one
-Worker template for all languages. Depends on task 3 for the data format (can
-start in parallel with a stub).
-
-- Like Apertium's `src/index.ts`: Durable Object with
-  `scheduling_policy: "durable_object"`, `ctx.container.start()`,
-  `enableInternet: false`, `interceptOutboundHttp("data.internal", …)` serving
-  only this language's corpora from R2; image pushed by us and pinned by
-  digest; startup wait loop; restart via authenticated `/admin/restart`.
-- Container side: the entrypoint in `Containerfile.backend` fetches the corpus
-  archives (+ corpus config) from `http://data.internal/…` into `/corpora`
-  before starting gunicorn. Korp 9 settings come as env vars from the Worker
-  (`CORS_ALLOW_ORIGINS`, `LC_COLLATE`: the image lacks `sv_SE.UTF-8`, …).
-- **Decide:** one Worker per language (template + generated per-language
-  wrangler config, like Apertium's `.build/<instance>/wrangler.json`), or one
-  Worker for all languages with a Durable Object/container per language
-  (`/<lang>/…` → `getByName(lang)`, language passed in `start({env})`). The
-  second means one deploy and one container application; the first gives
-  separate URLs, logs and stats per language. Either way: no per-language
-  directories.
-- Measure: cold start (download + unpack + start), peak memory → instance size.
-- Afterwards: delete the old `korp-backend-fkv` Worker *and* its container
-  application (deleting a Worker leaves the container app), and the R2 S3 keys
-  it used.
-
-**Done when:** fkv's API answers `/info` and `/concordance` on the test
-account, from data in R2, deployed by the tool.
-
-## 5. Frontend (built and tested locally; the deploy is Anders's)
-
-**State (2026-11-19):** the frontend is now **korp-vue** (Språkbanken's Vue 3
-frontend; korp-frontend is deprecated upstream), branch `api-v9`, which speaks
-the Korp 9 API of our backend. Språkbanken's own Korp runs exactly this
-combination (korp-vue against `ws.spraakbanken.gu.se/ws/korp/v9`, 9.0.0.dev0).
-Both are pinned: `ARG KORP_VUE_COMMIT` in `Containerfile.frontend` (a510865,
-2026-11-11) and `ARG KORP_BACKEND_COMMIT` in `Containerfile.backend` (424170a,
-2026-11-18, the code that was already deployed). Update them together.
-
-- Served by the same Worker as the API (static assets, `run_worker_first` for
-  `/api` and `/admin/*`), so no CORS and no separate frontend Worker.
-  `manage deploy <lang>` builds the frontend into `worker/.build/<lang>/dist/`,
-  builds and pushes the image, and deploys both; `deploy front` and the REST
-  asset upload (`assets_upload.rs`) are gone.
-- Instance code in `korp-vue-instance/` (its README): settings from
-  `gtweb2_config/front/config-<lang>.yaml` (the old `korp_backend_url` lines
-  are removed: the API URL is computed in the browser as `api` next to the
-  page), UiT + Giellatekno logos, our own footer, UI translations ported from
-  the old ones by English text (~145 of ~330 strings; the rest in English).
-- Tested locally (wrangler dev): the page loads, a search in fkv_news shows
-  501 hits with the sidebar, in English and North Sámi.
-- The manage tool builds with `docker build --network host`: over the VPN
-  (tun0, MTU 1191) downloads in builds on docker's bridge network hang.
-
-Left: deploy (`manage deploy fkv`); the old static Workers `korp-frontend-fkv`
-and `korp-frontend-sme` (Korp 8 frontends) on the test account can be deleted; `logo_change/` (patch for
-the old frontend) can go; translations of attribute values
-(`translations/corpora-<lang>.json`) aren't ported.
-
-### Original task description
-
-
-No containers at runtime: build in a container, copy the files out, upload them
-as a Worker with static assets only. Most of it exists: `build_front_base`,
-`build_front`, `cf_deploy_front` and `assets_upload.rs` (uploads through the
-REST API, no wrangler) in `manage/src/`.
-
-- The frontend must be a Korp-9-compatible korp-frontend.
-  `Containerfile.frontend-base` builds upstream `dev` + PR 509 (check what that
-  PR is, and whether it's still needed).
-- Backend URL: frontend configs (`gtweb2_config/front/config-<lang>.yaml`) set
-  `korp_backend_url` at build time. Point it at the task-4 API. Also consider
-  serving frontend and API from the same Worker (like Apertium), which would
-  make the URL relative and avoid CORS. Decide together with task 4.
-- Translations from `gtweb2_config/translations/`, logos from `logo_change/`.
-
-**Done when:** `front-fkv` is deployed as a static Worker on the test account
-and searches work against the task-4 API. (Changed: served by `korp-fkv`.)
+---
 
 ## 6. Check corpus configs against Korp 9 (independent)
 
@@ -296,15 +141,74 @@ each language that has local CWB data, and check that Korp 9 accepts the
 configs: modes, attributes, `/corpora/info`, a concordance search per corpus.
 Fix or list what needs changing.
 
-**Done when:** fkv works fully; a list of needed changes for the others.
+Known so far: sme's config names the `*_20211118` corpora, while
+`compile-cwb-mono` made `*_20261026` (8 sme corpora, 719 MB, in
+`compile-cwb-mono/compiled_mono/cwb/`). Either rename in the config or
+recompile; decide with Anders.
+
+**Done when:** fkv works fully (it does, as far as tested); a list of needed
+changes for the others.
+
+## 7. All languages, and the combined instances smi / nsu / other
+
+**Waiting for:** Anders is locating the CWB data for the other languages.
+Locally there is only fkv (`cwb-data/`) and sme (`compile-cwb-mono/compiled_mono/cwb/`).
+
+Per language, once the data is there:
+
+```
+cargo run --release -- data upload <lang> --cwb-dir <dir> --dry-run
+cargo run --release -- data upload <lang> --cwb-dir <dir>
+cargo run --release -- deploy <lang> --dry-run
+cargo run --release -- deploy <lang>
+```
+
+The 18 languages: fao fit fkv koi kpv mdf mhr mrj myv olo sma sme smj smn sms
+udm vep vro.
+
+**Combined instances.** `gtweb2_config/corpus_configs/` (and `front/`) also
+has three directories that are not language codes. They come from the old
+setup, where one Korp held several languages as *modes*:
+
+| instance | contents | default mode | other modes |
+|---|---|---|---|
+| `smi` | all Sámi languages | sme ("North sami texts") | sma, smj, smn, sms |
+| `nsu` | non-Sámi Uralic | kpv ("Komi-Zyrian texts") | koi, mdf, mhr, mrj, myv, udm |
+| `other` | the rest | fkv ("Kven text") | fao, fit, olo, vep, vro |
+
+They use the same corpora as the single-language instances, so once those are
+uploaded they need no data of their own (archives are content-addressed and
+shared). Checked against the per-language configs (2026-11-19):
+- `nsu` (22 corpora) and `other` (22) list exactly the corpora of their languages.
+- `smi` (39) has `sme_wikipedia_20211118`, which `sme`'s config doesn't, and
+  lacks sme's historical-orthography corpora (`friis_bible`, `friis_ficti`,
+  `friis_news`, `itkonen_news`, `leem_bible`, `leem_ficti`). Check with Anders
+  whether that's intended.
+
+To do for them:
+- Add `smi`, `nsu`, `other` to `manage/src/lang.rs` (only the 18 language
+  codes are accepted now). Check that nothing treats the instance name as a
+  language code (e.g. a locale, `LC_COLLATE`, the frontend's default language).
+- Worker names would be `korp-smi`, `korp-nsu`, `korp-other`.
+- The configs are Korp 8 and untested with Korp 9 (task 6); modes are the
+  part most likely to need changes.
+- Decide with Anders whether all three are still wanted next to the
+  single-language instances.
+
+**Done when:** every instance whose data exists answers on the test account,
+and the selector page (`selector-page/index.html`) lists them.
 
 ## Later
 
-- Management commands once tasks 4 and 5 work: `deploy`, `status`, `logs`, `usage`, `images list|prune` (copy the ideas from Apertium's
-  `manage.py`).
-- All ~15 languages: corpora compiled (`compile-cwb-mono`), uploaded, deployed.
+- Cold start: break down the 26 s (provisioning vs. R2 download vs. unpack);
+  choose the instance size from measured peak memory, per language (sme is
+  ~100× fkv).
+- More management commands: `status`, `logs`, `usage`, `images list|prune`
+  (ideas from Apertium's `manage.py`).
 - Prod account (needs Workers Paid), URLs (gtweb.uit.no reverse proxy like
-  `/jorgal/`, see `claude-log` section 5), the selector page
-  (`selector-page/index.html`).
+  `/jorgal/`, see `claude-log` section 5). The selector page
+  (`selector-page/index.html`, redesigned 2026-11-19) links to
+  `https://gtweb-02.uit.no/korp/<lang>`; change the links when the URLs are
+  decided, and add rows for new instances.
 - Historical-orthography corpora (`gen-altorth-korps/`).
 - Update `README.md` (it describes the old gtweb-02 setup).

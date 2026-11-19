@@ -34,7 +34,6 @@ github.com/giellatekno/korp  (this repository)
                            korp-backend. Now only used for our old Korp instances.
   korp-frontend          - submodule containing an old fork of Språkbanken's
                            korp-frontend. Now only used for our old Korp instances.
-  logo_change/           - logos
   selector-page/
     index.html           - simple page with links to the various korp sites
                            visible at https://gtweb-02.uit.no/korp/
