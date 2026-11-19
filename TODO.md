@@ -102,7 +102,69 @@ structure; `build back` still builds the image.
 - `wrangler` is still run from `korp-backend-fkv/` (`WRANGLER_DIR` in
   `main.rs`), which task 4 replaces.
 
-## 3. Corpus data in R2
+## 3. Corpus data in R2 (built and tested locally; the first real upload is Anders's)
+
+**State (2026-11-19):** the `data` command in `manage/src/corpora.rs` is built.
+It's tested against a local S3 server (VersityGW in Docker), not against R2:
+fkv upload, re-upload (no change), rollback, multipart (sme_news), and
+round-trip into the Korp 9 backend image (`/info`, `/concordance` OK). Still
+to do, by Anders: create the bucket and upload fkv (commands below).
+
+**Layout** (bucket `korp-corpora`, also in `manage data --help`):
+
+```
+corpora/<corpus>/<hash>.tar.zst   registry/<corpus> + data/<dir>/  → unpack into /corpora
+configs/<lang>/<hash>.tar.zst     corpus_configs/<lang>/ contents → unpack into /corpus_config
+langs/<lang>/<release>.json       {"lang", "release", "created",
+                                   "config": {"key", "size"},
+                                   "corpora": {"<corpus>": {"key", "size"}, …}}
+langs/<lang>/current              text: the release id in use, e.g. 20261119T101500Z
+```
+
+Decisions:
+- **Versioned per language, not per corpus.** A *release* pins the config
+  archive and every corpus archive; `current` points to one. Rollback moves the
+  pointer (`data rollback <lang> [release]`). Apertium's rule is kept: if an
+  upload equals a release newer than `current` (rolled back from), the rollback
+  stays, with a warning.
+- **Archives are content-addressed**: `<hash>` = first 16 hex of sha256 of a
+  deterministic tar (sorted, no times or owners). Unchanged data isn't uploaded
+  again; unchanged everything makes no new release. Archives never change.
+- **The language's corpora come from its corpus config** (`corpora/*.yaml`),
+  not from name prefixes: sme's config also has `friis_*`, `leem_*`,
+  `itkonen_*`. A corpus the config lists but that isn't found locally is
+  taken from the current release; if it isn't there either: error, or left
+  out with `--skip-missing`.
+- **Corpus config in R2** (per language, versioned with the corpora), so a
+  config change needs only a restart, not a deploy.
+- **Upload via R2's S3 API** (multipart above 100 MB, 64 MB parts), with S3
+  credentials derived from the API token (key id = token id, secret =
+  sha256(token)). No R2 keys to manage, but the token needs R2 write access
+  (it can list buckets; writing is untested). Test hook: `KORP_S3_ENDPOINT` +
+  `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` use another S3 server.
+- **Sizes:** CWB data is already compressed: fkv 6.7 MB in total; sme_news
+  343 MB raw → 282 MB (zstd -19; -3 would be 308 MB), unpacks in <1 s. So the
+  download dominates cold start (task 4: measure from R2).
+
+For task 4 (suggested contract): the Worker reads `langs/<lang>/current` and
+that release, and serves it as e.g. `http://data.internal/release.json`; the
+entrypoint fetches it, then `http://data.internal/<key>` for the config and
+each corpus (`curl | zstd -dc | tar -x -C …`). The Worker serves only keys
+named in that language's release. Note: sme's config names the
+`*_20211118` corpora, while `compile-cwb-mono` made `*_20261026` (task 6).
+
+Commands for Anders (from `manage/`, with `CLOUDFLARE_ACCOUNT_ID` set):
+
+```
+cargo run --release -- data create-bucket
+cargo run --release -- data upload fkv --dry-run
+cargo run --release -- data upload fkv        # --cwb-dir defaults to ../cwb-data
+cargo run --release -- data list fkv
+```
+
+The old bucket `korp-data` can go once task 4 no longer uses it.
+
+### Original task description
 
 How CWB data and corpus configs get into R2, in a form the backend container
 can fetch at startup. Read first: `manage/r2-data-notes.md` (takeaways from the

@@ -71,3 +71,8 @@ cwb-data/data/<corpus>/           CWB data files
   verified yet; Korp 9 renamed a lot.)
 - Korp 9's default `LC_COLLATE` is `sv_SE.UTF-8`, which the image doesn't
   have: set it, or install the locale.
+
+## Update 2026-11-19
+
+Built in task 3: layout, sizes and the upload command are in TODO.md (task 3)
+and `tasks data --help`. Uploads use multipart through the S3 API.

@@ -9,6 +9,8 @@ pub enum Task {
     PushBack,
     DeployBack { lang: Lang, dry_run: bool },
     DeployFront(Lang),
+    /// `data …`, handled by corpora::run
+    Data(ArgMatches),
 }
 
 pub struct Args {
@@ -42,7 +44,7 @@ fn command() -> Command {
                 .global(true)
                 .default_value(".CLOUDFLARE_API_TOKEN")
                 .env("CLOUDFLARE_API_TOKEN_FILE")
-                .help("File containing the Cloudflare API token (only needed by 'deploy front')."),
+                .help("File containing the Cloudflare API token (needed by 'deploy front' and 'data')."),
         )
         .subcommand(
             Command::new("build")
@@ -68,6 +70,7 @@ fn command() -> Command {
                         .about("Build and push the backend image (with 'wrangler containers push')"),
                 ),
         )
+        .subcommand(crate::corpora::command())
         .subcommand(
             Command::new("deploy")
                 .alias("d")
@@ -117,6 +120,7 @@ pub fn parse_args() -> Args {
             Some(("front", m)) => Task::DeployFront(lang(m)),
             _ => unreachable!("clap: subcommand required"),
         },
+        Some(("data", m)) => Task::Data(m.clone()),
         _ => unreachable!("clap: subcommand required"),
     };
 
