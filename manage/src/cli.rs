@@ -9,6 +9,7 @@ pub enum Task {
     PushBack,
     DeployBack { lang: Lang, dry_run: bool },
     DeployFront(Lang),
+    Restart(Lang),
     /// `data …`, handled by corpora::run
     Data(ArgMatches),
 }
@@ -44,7 +45,7 @@ fn command() -> Command {
                 .global(true)
                 .default_value(".CLOUDFLARE_API_TOKEN")
                 .env("CLOUDFLARE_API_TOKEN_FILE")
-                .help("File containing the Cloudflare API token (needed by 'deploy front' and 'data')."),
+                .help("File containing the Cloudflare API token (needed by 'deploy front', 'data' and 'restart')."),
         )
         .subcommand(
             Command::new("build")
@@ -71,6 +72,14 @@ fn command() -> Command {
                 ),
         )
         .subcommand(crate::corpora::command())
+        .subcommand(
+            Command::new("restart")
+                .about(
+                    "Restart the container of the Worker korp-<lang>: the next request starts a new one, \
+                     with the language's current release in R2 (do this after 'data upload' or 'data rollback')",
+                )
+                .arg(lang_arg()),
+        )
         .subcommand(
             Command::new("deploy")
                 .alias("d")
@@ -121,6 +130,7 @@ pub fn parse_args() -> Args {
             _ => unreachable!("clap: subcommand required"),
         },
         Some(("data", m)) => Task::Data(m.clone()),
+        Some(("restart", m)) => Task::Restart(lang(m)),
         _ => unreachable!("clap: subcommand required"),
     };
 

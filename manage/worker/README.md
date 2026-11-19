@@ -50,12 +50,12 @@ cargo run --release -- deploy back fkv                 # build + push image, dep
 ```
 
 The first deploy creates `worker/secrets.<account id>.env` with a random
-`ADMIN_TOKEN` (passed with `--secrets-file` on every deploy). Restart by hand
-(e.g. after `data upload`):
+`ADMIN_TOKEN` (passed with `--secrets-file` on every deploy). After a data
+change (`data upload`, `data rollback`), restart the container so it fetches
+the new current release:
 
 ```sh
-curl -X POST -H "Authorization: Bearer $(sed -n 's/^ADMIN_TOKEN=//p' worker/secrets.$(cat CLOUDFLARE_ACCOUNT_ID).env)" \
-     https://korp-fkv.<subdomain>.workers.dev/admin/restart
+cargo run --release -- restart fkv      # POST https://korp-fkv.<subdomain>.workers.dev/admin/restart
 ```
 
 ## Local test (real Docker, not podman: `unset DOCKER_HOST`)

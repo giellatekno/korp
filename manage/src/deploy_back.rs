@@ -221,11 +221,41 @@ fn admin_token(secrets_path: &Path) -> anyhow::Result<String> {
         .with_context(|| format!("no ADMIN_TOKEN in {}", secrets_path.display()))
 }
 
+/// The workers.dev URL of the Worker of `lang`:
+/// https://korp-<lang>.<account's subdomain>.workers.dev
+pub async fn worker_url(account_id: &str, api_token: &str, lang: &str) -> anyhow::Result<String> {
+    #[derive(serde::Deserialize)]
+    struct Subdomain {
+        subdomain: String,
+    }
+    let response: crate::cf_models::ApiResponse<Subdomain> = reqwest::Client::new()
+        .get(format!("https://api.cloudflare.com/client/v4/accounts/{account_id}/workers/subdomain"))
+        .bearer_auth(api_token.trim())
+        .send()
+        .await?
+        .json()
+        .await
+        .context("reading the account's workers.dev subdomain")?;
+    let subdomain = response.try_into_result().context("getting the account's workers.dev subdomain")?.subdomain;
+    Ok(format!("https://{}.{subdomain}.workers.dev", worker_name(lang)))
+}
+
+/// Restart the container of the Worker of `lang` (`manage restart <lang>`),
+/// with the ADMIN_TOKEN in worker/secrets.<account id>.env.
+pub async fn restart_lang(manage_dir: &Path, account_id: &str, api_token: &str, lang: &str) -> anyhow::Result<()> {
+    let secrets_path = manage_dir.join("worker").join(format!("secrets.{account_id}.env"));
+    if !secrets_path.exists() {
+        bail!("{} doesn't exist: has korp-{lang} been deployed from here?", secrets_path.display());
+    }
+    let url = worker_url(account_id, api_token, lang).await?;
+    restart(&url, &secrets_path)
+}
+
 /// POST <url>/admin/restart: stops the container; the next request starts a
 /// new one with the deployed image and the current corpora.
 pub fn restart(url: &str, secrets_path: &Path) -> anyhow::Result<()> {
     let token = admin_token(secrets_path)?;
-    tracing::info!("POST {url}/admin/restart");
+    println!("POST {url}/admin/restart");
     let output = Command::new("curl")
         .args(["--fail-with-body", "--silent", "--show-error", "-X", "POST", "-H"])
         .arg(format!("Authorization: Bearer {token}"))

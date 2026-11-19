@@ -191,7 +191,14 @@ Durable Object reads `langs/<lang>/current` and that release, passes
 only archives named in a release of this language. Tested locally (wrangler
 dev + local R2 filled by `data upload` via a local S3): `/api/info`,
 `/api/concordance`, restart; cold start 1.9 s for fkv. Not yet on Cloudflare,
-not measured there, old `korp-backend-fkv` Worker not deleted.
+not measured there.
+
+Cleanup done (2026-11-19): the old `korp-backend-fkv` Worker, its container
+application and the bucket `korp-data` are deleted on the test account (all its
+contents had local copies), and so is `manage/korp-backend-fkv/`. `manage
+restart <lang>` restarts a language's container. Left: the R2 S3 keys the old
+Worker used (revoke in the dashboard) and the Korp 8 images `korp-backend:8.3.0-*`
+in the registry.
 
 ### Original task description
 
@@ -256,8 +263,7 @@ Fix or list what needs changing.
 
 ## Later
 
-- Management commands once tasks 4 and 5 work: `deploy`, `status`, `logs`,
-  `restart`, `usage`, `images list|prune` (copy the ideas from Apertium's
+- Management commands once tasks 4 and 5 work: `deploy`, `status`, `logs`, `usage`, `images list|prune` (copy the ideas from Apertium's
   `manage.py`).
 - All ~15 languages: corpora compiled (`compile-cwb-mono`), uploaded, deployed.
 - Prod account (needs Workers Paid), URLs (gtweb.uit.no reverse proxy like

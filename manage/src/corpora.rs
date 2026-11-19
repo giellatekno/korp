@@ -284,9 +284,19 @@ async fn upload(r2: &R2, opts: &UploadOptions) -> anyhow::Result<()> {
     // Upload the config and the local corpora
     let mut entries = Vec::new();
     add_tree(&mut entries, "", &config_dir)?;
-    let config = ensure_uploaded(r2, &format!("configs/{lang}"), &format!("config of {lang}"), &entries, dry_run).await?;
+    // In a dry run, what would be uploaded: count and size before compression
+    // (the compressed size is only known after compressing, which a dry run skips)
+    let mut pending = (0usize, 0u64);
+    let (config, tar_size) =
+        ensure_uploaded(r2, &format!("configs/{lang}"), &format!("config of {lang}"), &entries, dry_run).await?;
+    if let Some(tar_size) = tar_size {
+        pending = (pending.0 + 1, pending.1 + tar_size);
+    }
     for (name, entries) in local {
-        let object = ensure_uploaded(r2, &format!("corpora/{name}"), name, &entries, dry_run).await?;
+        let (object, tar_size) = ensure_uploaded(r2, &format!("corpora/{name}"), name, &entries, dry_run).await?;
+        if let Some(tar_size) = tar_size {
+            pending = (pending.0 + 1, pending.1 + tar_size);
+        }
         corpora.insert(name.clone(), object);
     }
 
@@ -326,11 +336,18 @@ async fn upload(r2: &R2, opts: &UploadOptions) -> anyhow::Result<()> {
         }
     }
 
-    let json = serde_json::to_string_pretty(&release)?;
     if dry_run {
-        println!("{lang}: would make release {} (dry run):\n{json}", release.release);
+        let (count, tar_size) = pending;
+        println!(
+            "{lang}: would make a new release with the config and {} corpora (dry run). \
+             {count} archive(s) to upload, {} before compression; {} already in R2.",
+            release.corpora.len(),
+            human(tar_size),
+            release.corpora.len() + 1 - count,
+        );
         return Ok(());
     }
+    let json = serde_json::to_string_pretty(&release)?;
     let key = release_key(lang, &release.release);
     if r2.size(&key).await?.is_some() {
         bail!("{key} exists already (two uploads in the same second?): run it again");
@@ -393,28 +410,30 @@ fn find_corpus(cwb_dirs: &[PathBuf], name: &str) -> anyhow::Result<Option<Vec<(S
 }
 
 /// Upload the archive of `entries` as `<prefix>/<hash>.tar.zst`, unless it's
-/// there already. Returns its key and (compressed) size.
+/// there already. Returns its key and (compressed) size; in a dry run, for an
+/// archive that isn't in R2, the size is unknown (0) and the second value is
+/// its size before compression.
 async fn ensure_uploaded(
     r2: &R2,
     prefix: &str,
     what: &str,
     entries: &[(String, PathBuf)],
     dry_run: bool,
-) -> anyhow::Result<Object> {
+) -> anyhow::Result<(Object, Option<u64>)> {
     let (hash, tar_size) = tar_hash(entries).with_context(|| format!("archiving {what}"))?;
     let key = format!("{prefix}/{hash}.tar.zst");
     if let Some(size) = r2.size(&key).await? {
-        tracing::info!(key, size = %human(size), "{what}: already in R2");
-        return Ok(Object { key, size });
+        println!("{what}: already in R2: {key} ({})", human(size));
+        return Ok((Object { key, size }, None));
     }
     if dry_run {
-        println!("{what}: would upload {key} ({} uncompressed)", human(tar_size));
-        return Ok(Object { key, size: 0 });
+        println!("{what}: would upload {key} ({} before compression)", human(tar_size));
+        return Ok((Object { key, size: 0 }, Some(tar_size)));
     }
 
     let tmp = std::env::temp_dir().join(format!("korp-{}-{hash}.tar.zst", prefix.replace('/', "-")));
     tracing::info!(file = %tmp.display(), "{what}: compressing {} (zstd -{ZSTD_LEVEL})", human(tar_size));
-    let result = async {
+    let result: anyhow::Result<Object> = async {
         write_archive(entries, &tmp).with_context(|| format!("writing {}", tmp.display()))?;
         let size = std::fs::metadata(&tmp)?.len();
         tracing::info!(key, size = %human(size), "{what}: uploading");
@@ -424,7 +443,7 @@ async fn ensure_uploaded(
     }
     .await;
     let _ = std::fs::remove_file(&tmp);
-    result
+    Ok((result?, None))
 }
 
 // ------------------------------------------------------------ list, rollback

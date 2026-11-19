@@ -245,6 +245,9 @@ async fn main() -> anyhow::Result<()> {
         }
         Task::DeployBack { lang, dry_run } => deploy_back(&config, lang, dry_run)?,
         Task::DeployFront(lang) => deploy_front(&config, lang).await?,
+        Task::Restart(lang) => {
+            deploy_back::restart_lang(&cwd, &config.cf_account_id()?, &config.cf_api_token()?, lang.as_str()).await?
+        }
         Task::Data(ref matches) => corpora::run(&config.cf_account_id()?, &config.cf_api_token()?, matches).await?,
     }
 
