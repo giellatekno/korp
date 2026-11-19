@@ -15,14 +15,14 @@ need to know (decisions, names, URLs) under the task.
   concepts as the Apertium deployment: `claude-log` sections 4 (architecture)
   and 5 (Cloudflare gotchas); the code is in `~/gut/giellatekno/apertium`
   (`deploy/cloudflare/src/index.ts`, `wrangler.jsonc`, `manage.py`).
-- **Accounts:** test = "UiT / Anders Lorentsen" (`tasks/CLOUDFLARE_ACCOUNT_ID`,
+- **Accounts:** test = "UiT / Anders Lorentsen" (`manage/CLOUDFLARE_ACCOUNT_ID`,
   has Workers Paid/Containers), prod = "Giellatekno" (no Workers Paid yet). Work
   on test.
-- **Management tool:** the Rust crate in `tasks/` (replaces `tasks.py`). Run it
-  from `tasks/`: `CLOUDFLARE_ACCOUNT_ID=$(cat CLOUDFLARE_ACCOUNT_ID) cargo run --release -- …`
+- **Management tool:** the Rust crate in `manage/` (replaces `tasks.py`). Run it
+  from `manage/`: `CLOUDFLARE_ACCOUNT_ID=$(cat CLOUDFLARE_ACCOUNT_ID) cargo run --release -- …`
 - **Containers:** real Docker only, never podman (if `DOCKER_HOST` points to
   podman, `unset DOCKER_HOST`). Builds need `--load`.
-- **Backend image:** `tasks/containerfiles/Containerfile.backend`: one image
+- **Backend image:** `manage/containerfiles/Containerfile.backend`: one image
   for all languages. Upstream korp-backend `dev` (9.0.0.dev0, FastAPI, port
   8000) + CWB from `giellatekno.azurecr.io/corpusworkbench:3.5.1`. Expects CWB
   data in `/corpora/{registry,data}` (the entrypoint rewrites registry
@@ -43,27 +43,27 @@ need to know (decisions, names, URLs) under the task.
 
 Notes (2026-11-19):
 - Root `.gitignore` added (credentials, build output, big data,
-  `tasks/korp-backend-fkv/`, `.claude/`). `tasks/xxx`, `cloned/` and `x.py`
+  `manage/korp-backend-fkv/`, `.claude/`). `manage/xxx`, `cloned/` and `x.py`
   were already gone.
 - Deleted `cloudflare/` and root `containerfiles/`.
 - main was fast-forwarded to d102bd1 (the tool as it was, committed by the
   task-2 session).
 - Docker build context = repo root (the root `.dockerignore` lets only
   `gtweb2_config/` through; add `!logo_change/` in task 5). Came with task 2
-  (b975c95); the stale `tasks/gtweb2_config/` was then deleted.
+  (b975c95); the stale `manage/gtweb2_config/` was then deleted.
 - Left alone on purpose: the deleted submodules `korp-backend`/`korp-frontend`
   and the tracked `.deb` (unstaged deletions in `git status`), and the untracked
   `compile-cwb-mono/` and `claude-log`.
 
-- Add a root `.gitignore`: credentials (`tasks/.CLOUDFLARE_API_TOKEN`,
-  `tasks/s3_compat_credentials`, `tasks/xxx`, `**/.dev.vars`, `secrets*.env`),
-  build output (`target/`, `node_modules/`, `.wrangler/`, `tasks/html/`,
+- Add a root `.gitignore`: credentials (`manage/.CLOUDFLARE_API_TOKEN`,
+  `manage/s3_compat_credentials`, `manage/xxx`, `**/.dev.vars`, `secrets*.env`),
+  build output (`target/`, `node_modules/`, `.wrangler/`, `manage/html/`,
   `**/dist/`), big data (`cwb-data/`, `compile-cwb-mono/compiled_mono/`).
-- `tasks/xxx` contains an API token in plain text: delete the file (Anders
+- `manage/xxx` contains an API token in plain text: delete the file (Anders
   decides whether to rotate the token).
-- Decide which untracked directories to commit (`tasks/`, `compile-cwb-mono/`)
+- Decide which untracked directories to commit (`manage/`, `compile-cwb-mono/`)
   and which old ones to delete (`cloned/`, `cloudflare/`, root `containerfiles/`,
-  `tasks/gtweb2_config/` (stale copy of `gtweb2_config/`), `x.py`, the `.deb`).
+  `manage/gtweb2_config/` (stale copy of `gtweb2_config/`), `x.py`, the `.deb`).
 - Commit (staged rename `repath.py` → `repath_cwb_registry.py` is pending).
 
 **Done when:** `git status` shows only intended files, and no secrets are
@@ -72,7 +72,7 @@ committable.
 ## 2. Management tool: clean up the command structure (small, independent) — DONE
 
 Everything is on Cloudflare now, so the `cf` subcommand level goes away:
-`tasks build back`, `tasks build front <lang>`, `tasks push back`, `tasks
+`manage build back`, `manage build front <lang>`, `manage push back`, `manage
 deploy …`. Remove dead code (`cf_get_worker`, `get` in `assets_upload.rs`,
 unused variables), the `sync-settings` command that only prints rclone hints
 (task 3 replaces it), and the `Instance` type if the new structure doesn't need
@@ -95,7 +95,7 @@ structure; `build back` still builds the image.
   only read by `deploy front`.
 - Docker build context is the repo root (the first ancestor with
   `gtweb2_config/`), limited by the root `.dockerignore`; Containerfiles are
-  passed as `<root>/tasks/containerfiles/<name>`. Task 5 must add
+  passed as `<root>/manage/containerfiles/<name>`. Task 5 must add
   `!logo_change/` to `.dockerignore`.
 - Fixed: `deploy front` passed the API token and script name swapped to
   `create_version`/`create_deployment` (untested against the API since).
@@ -105,7 +105,7 @@ structure; `build back` still builds the image.
 ## 3. Corpus data in R2
 
 How CWB data and corpus configs get into R2, in a form the backend container
-can fetch at startup. Read first: `tasks/r2-data-notes.md` (takeaways from the
+can fetch at startup. Read first: `manage/r2-data-notes.md` (takeaways from the
 old s3fs approach), Apertium's pair versioning (`claude-log` section 4, "Pair
 versioning rule").
 
@@ -123,7 +123,7 @@ and the layout is documented (here and in the tool's help).
 
 ## 4. API Worker (backend on Cloudflare)
 
-Replace `tasks/korp-backend-fkv/` (made from the containers template: deprecated
+Replace `manage/korp-backend-fkv/` (made from the containers template: deprecated
 `Container` class, image by tag, R2 S3 keys passed into the container) with one
 Worker template for all languages. Depends on task 3 for the data format (can
 start in parallel with a stub).
@@ -157,7 +157,7 @@ account, from data in R2, deployed by the tool.
 No containers at runtime: build in a container, copy the files out, upload them
 as a Worker with static assets only. Most of it exists: `build_front_base`,
 `build_front`, `cf_deploy_front` and `assets_upload.rs` (uploads through the
-REST API, no wrangler) in `tasks/src/`.
+REST API, no wrangler) in `manage/src/`.
 
 - The frontend must be a Korp-9-compatible korp-frontend.
   `Containerfile.frontend-base` builds upstream `dev` + PR 509 (check what that

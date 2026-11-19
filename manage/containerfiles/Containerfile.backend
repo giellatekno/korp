@@ -1,9 +1,9 @@
 # korp-backend (Språkbanken's, version 9, branch dev), with Corpus WorkBench.
 #
-# Build (`build back` in the tasks tool does this), from the korp repo root,
+# Build (`build back` in the manage tool does this), from the korp repo root,
 # which is the build context (see .dockerignore there):
 #
-#   docker build --load -t korp-backend -f tasks/containerfiles/Containerfile.backend .
+#   docker build --load -t korp-backend -f manage/containerfiles/Containerfile.backend .
 #
 # Nothing corpus-specific is in the image. At runtime it needs:
 #   /corpora        a directory with CWB's registry/ and data/ (read-only is

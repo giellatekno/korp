@@ -814,6 +814,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
 
 [[package]]
+name = "manage"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64 0.23.0",
+ "clap",
+ "hex",
+ "humansize",
+ "mime_guess",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "walkdir",
+]
+
+[[package]]
 name = "matchers"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1466,27 +1487,6 @@ checksum = "8e1d1b10ced5ca923a1fcb8d03e96b8d3268065d724548c0211415ff6ac6bac4"
 dependencies = [
  "core-foundation-sys",
  "libc",
-]
-
-[[package]]
-name = "tasks"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64 0.23.0",
- "clap",
- "hex",
- "humansize",
- "mime_guess",
- "reqwest",
- "serde",
- "serde_json",
- "sha2",
- "thiserror",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "walkdir",
 ]
 
 [[package]]

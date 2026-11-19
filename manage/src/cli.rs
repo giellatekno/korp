@@ -25,8 +25,8 @@ fn lang_arg() -> Arg {
 }
 
 fn command() -> Command {
-    Command::new("tasks")
-        .about("Build and deploy Giellatekno's Korp on Cloudflare. Run it from tasks/.")
+    Command::new("manage")
+        .about("Build and deploy Giellatekno's Korp on Cloudflare. Run it from manage/.")
         .subcommand_required(true)
         .arg_required_else_help(true)
         .arg(

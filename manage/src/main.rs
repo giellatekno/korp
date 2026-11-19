@@ -19,7 +19,7 @@ use crate::lang::Lang;
 /// neither --cf-account-id nor CLOUDFLARE_ACCOUNT_ID is given.
 const ACCOUNT_ID_FILE: &str = "CLOUDFLARE_ACCOUNT_ID";
 
-/// Directory (in tasks/) where wrangler is installed (node_modules), to run it from.
+/// Directory (in manage/) where wrangler is installed (node_modules), to run it from.
 /// For now that's the korp-backend-fkv Worker, the only one there is.
 /// TODO: wrangler setup shared by all languages, when the Workers are redone (task 4).
 const WRANGLER_DIR: &str = "korp-backend-fkv";
@@ -80,7 +80,7 @@ fn frontend_image_name(lang: Lang) -> String {
 }
 
 /// Run `docker build --load -f <containerfile> -t <tag>... [--build-arg <arg>...] <context>`,
-/// with the repo root as the context, and `<root>/tasks/containerfiles/<containerfile>`.
+/// with the repo root as the context, and `<root>/manage/containerfiles/<containerfile>`.
 fn docker_build(
     config: &Config,
     containerfile: &str,
@@ -90,7 +90,7 @@ fn docker_build(
     let context = get_build_context_dir(config.cwd)?;
     let mut cmd = std::process::Command::new(DOCKER);
     // -f is relative to the process's cwd, not to the context
-    let containerfile = context.join("tasks/containerfiles").join(containerfile);
+    let containerfile = context.join("manage/containerfiles").join(containerfile);
     cmd.arg("build").arg("--load").arg("-f").arg(containerfile);
     for tag in tags {
         cmd.arg("-t").arg(tag);
@@ -163,7 +163,7 @@ async fn deploy_front(config: &Config<'_>, lang: Lang) -> anyhow::Result<()> {
 /// Build the backend image (one image for all languages). Tagged both as
 /// korp-backend:<tag> and as <account registry>/korp-backend:<tag>.
 fn build_back(config: &Config) -> anyhow::Result<ImageName> {
-    tracing::info!("build container image 'korp-backend' from tasks/containerfiles/Containerfile.backend");
+    tracing::info!("build container image 'korp-backend' from manage/containerfiles/Containerfile.backend");
     let image_name = ImageName::builder()
         .registry(format!("registry.cloudflare.com/{}", config.cf_account_id()?))
         .name("korp-backend".to_string())
