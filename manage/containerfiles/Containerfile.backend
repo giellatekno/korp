@@ -34,8 +34,9 @@ FROM docker.io/library/debian:trixie
 #   (TODO: compile in a builder stage, and copy only the venv into a slim image)
 # - libglib2.0-0t64, libpcre2-8-0, libreadline8t64, libatomic1: what the CWB
 #   binaries link against (`ldd /usr/bin/cqp` in the cwb image)
+# - zstd: the entrypoint unpacks corpus archives (.tar.zst)
 RUN apt-get update && apt-get install --no-install-recommends -y \
-        git curl ca-certificates build-essential python3 python3-dev \
+        git curl ca-certificates build-essential python3 python3-dev zstd \
         libglib2.0-0t64 libpcre2-8-0 libreadline8t64 libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -66,15 +67,52 @@ ENV PATH="/korp/korp-backend/.venv/bin:$PATH" \
     CWB_REGISTRY=/corpora/registry \
     CORPUS_CONFIG_DIR=/corpus_config
 
-# Registry files name the data directory of their corpus with absolute paths
-# (HOME, INFO), which are wherever the corpus was built. Instead of editing the
-# files, the entrypoint copies the registry to /tmp/cwb-registry, with HOME and
-# INFO pointing to the directory of the same name under /corpora/data, and
-# points CWB_REGISTRY there. (The same trick as the corpusworkbench image's
-# entrypoint.) The mounted files are left untouched.
+# Korp 9's default LC_COLLATE is sv_SE.UTF-8, which this image doesn't have
+ENV LC_COLLATE=C.UTF-8
+
+# The entrypoint, in two steps:
+#
+# 1. Only if DATA_URL is set (on Cloudflare: http://data.internal, served from
+#    R2 by the Worker, see tasks/worker/src/index.ts): download and unpack
+#      $DATA_URL/config.tar.zst             into /corpus_config
+#      $DATA_URL/corpora/<corpus>.tar.zst   into /corpora, for each corpus in
+#                                           CORPORA (space-separated)
+#    A corpus archive holds registry/<corpus> and data/<dir>/. DATA_URL may also
+#    be file:///some/dir, to test with local archives. Both /corpus_config and
+#    /corpora must then be writable (not mounted read-only).
+#
+# 2. Registry files name the data directory of their corpus with absolute paths
+#    (HOME, INFO), which are wherever the corpus was built. Instead of editing
+#    the files, the entrypoint copies the registry to /tmp/cwb-registry, with
+#    HOME and INFO pointing to the directory of the same name under
+#    /corpora/data, and points CWB_REGISTRY there. (The same trick as the
+#    corpusworkbench image's entrypoint.) The files in /corpora are left
+#    untouched, so it can be mounted read-only.
 COPY <<'EOF' /entrypoint.sh
-#!/bin/sh
-set -eu
+#!/bin/bash
+set -euo pipefail
+
+# fetch URL DIR: download a .tar.zst archive and unpack it into DIR
+fetch() {
+    local start=$SECONDS
+    curl --fail --silent --show-error --retry 3 "$1" | zstd -dc | tar -x -C "$2"
+    echo "entrypoint.sh: unpacked $1 into $2 ($((SECONDS - start)) s)"
+}
+
+if [ -n "${DATA_URL:-}" ]; then
+    start=$SECONDS
+    mkdir -p /corpus_config /corpora
+    fetch "$DATA_URL/config.tar.zst" /corpus_config
+    for corpus in ${CORPORA:-}; do
+        fetch "$DATA_URL/corpora/$corpus.tar.zst" /corpora
+        if [ ! -f "/corpora/registry/$corpus" ]; then
+            echo "entrypoint.sh: ERROR: the archive of $corpus has no registry/$corpus" >&2
+            exit 1
+        fi
+    done
+    echo "entrypoint.sh: corpus config and $(echo ${CORPORA:-} | wc -w) corpora ($(du -sh /corpora | cut -f1)) fetched in $((SECONDS - start)) s"
+fi
+
 if [ -d /corpora/registry ]; then
     registry=/tmp/cwb-registry
     rm -rf "$registry"

@@ -3,6 +3,7 @@ mod base64;
 mod cf_models;
 pub mod childprocess;
 mod cli;
+mod deploy_back;
 mod docker;
 mod lang;
 mod manifest;
@@ -19,10 +20,9 @@ use crate::lang::Lang;
 /// neither --cf-account-id nor CLOUDFLARE_ACCOUNT_ID is given.
 const ACCOUNT_ID_FILE: &str = "CLOUDFLARE_ACCOUNT_ID";
 
-/// Directory (in manage/) where wrangler is installed (node_modules), to run it from.
-/// For now that's the korp-backend-fkv Worker, the only one there is.
-/// TODO: wrangler setup shared by all languages, when the Workers are redone (task 4).
-const WRANGLER_DIR: &str = "korp-backend-fkv";
+/// Directory (in manage/) where wrangler is installed (node_modules), to run it
+/// from: the Worker template of all languages (see src/deploy_back.rs).
+const WRANGLER_DIR: &str = "worker";
 
 /// Tag of the korp-backend image. The Containerfile clones korp-backend's dev
 /// branch (version 9.0.0.dev0), so this doesn't pin anything.
@@ -179,12 +179,14 @@ fn build_back(config: &Config) -> anyhow::Result<ImageName> {
     Ok(image_name)
 }
 
-/// Run `pnpm wrangler <args>` in `dir`, with the account id in the environment.
-fn wrangler(config: &Config, dir: &Path, args: &[&str]) -> anyhow::Result<()> {
-    tracing::info!(working_directory = %dir.display(), "run: 'pnpm wrangler {}'", args.join(" "));
-    let status = std::process::Command::new("pnpm")
-        .arg("wrangler")
-        .args(args)
+/// Push the backend image to the Cloudflare container registry of the account,
+/// with `wrangler containers push` (npx, in worker/).
+fn push_back(config: &Config, image_name: &ImageName) -> anyhow::Result<()> {
+    let image_name = image_name.to_name_and_tag_string();
+    let dir = config.cwd.join(WRANGLER_DIR);
+    tracing::info!(working_directory = %dir.display(), "run: 'npx wrangler containers push {image_name}'");
+    let status = std::process::Command::new("npx")
+        .args(["wrangler", "containers", "push", &image_name])
         .current_dir(dir)
         // also when the account id came from --cf-account-id or the file
         .env("CLOUDFLARE_ACCOUNT_ID", config.cf_account_id()?)
@@ -193,25 +195,26 @@ fn wrangler(config: &Config, dir: &Path, args: &[&str]) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Push the backend image to the Cloudflare container registry of the account,
-/// with `wrangler containers push`.
-fn push_back(config: &Config, image_name: &ImageName) -> anyhow::Result<()> {
-    let image_name = image_name.to_name_and_tag_string();
-    wrangler(
-        config,
-        &config.cwd.join(WRANGLER_DIR),
-        &["containers", "push", &image_name],
-    )
-}
-
-/// Deploy the API Worker of `lang` with `wrangler deploy` in korp-backend-<lang>/.
-/// To be rewritten in task 4 (one Worker template for all languages).
-fn deploy_back(config: &Config, lang: Lang) -> anyhow::Result<()> {
-    let dir = config.cwd.join(format!("korp-backend-{lang}"));
-    if !dir.is_dir() {
-        anyhow::bail!("{} doesn't exist (only fkv has an API Worker so far)", dir.display());
-    }
-    wrangler(config, &dir, &["deploy"])
+/// Deploy the Worker korp-<lang>: build and push the backend image (unless dry
+/// run), then the rest in deploy_back.rs.
+fn deploy_back(config: &Config, lang: Lang, dry_run: bool) -> anyhow::Result<()> {
+    let account_id = config.cf_account_id()?;
+    let repository = format!("registry.cloudflare.com/{account_id}/korp-backend");
+    let image = if dry_run {
+        format!("{repository}@{}", deploy_back::PLACEHOLDER_IMAGE_DIGEST)
+    } else {
+        let image_name = build_back(config)?;
+        push_back(config, &image_name)?;
+        deploy_back::pushed_image_digest(&image_name.to_string(), &repository)?
+    };
+    tracing::info!(image, "backend image");
+    deploy_back::deploy(&deploy_back::Options {
+        manage_dir: config.cwd,
+        account_id: &account_id,
+        lang: lang.as_str(),
+        image: &image,
+        dry_run,
+    })
 }
 
 fn setup_tracing() {
@@ -239,7 +242,7 @@ async fn main() -> anyhow::Result<()> {
             let image_name = build_back(&config)?;
             push_back(&config, &image_name)?;
         }
-        Task::DeployBack(lang) => deploy_back(&config, lang)?,
+        Task::DeployBack { lang, dry_run } => deploy_back(&config, lang, dry_run)?,
         Task::DeployFront(lang) => deploy_front(&config, lang).await?,
     }
 

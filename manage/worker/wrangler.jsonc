@@ -1,0 +1,56 @@
+// Cloudflare Worker of one Korp language: korp-backend in a container, behind
+// /api/*. See src/index.ts.
+//
+// This is the template for all languages: the management tool writes a copy
+// per language (.build/<lang>/wrangler.json) with the Worker name, KORP_LANG,
+// CORPORA and the image pinned by digest, and deploys that. `wrangler types`
+// and `wrangler dev` read this file directly (dev builds the image itself).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "korp-template",  // per language: korp-<lang>
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-17",
+  "observability": { "enabled": true },
+
+  "containers": [
+    {
+      "class_name": "Korp",
+      "scheduling_policy": "durable_object",
+      "images": {
+        // Deployed: {"image": "registry.cloudflare.com/<account>/korp-backend@sha256:…"}
+        "korp": { "dockerfile": "../containerfiles/Containerfile.backend", "build_context": ".." }
+      }
+    }
+  ],
+  "exports": {
+    "Korp": { "type": "durable-object", "storage": "sqlite" }
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "KORP", "class_name": "Korp" }]
+  },
+
+  // Corpus configs and corpora, shared by all languages in an account:
+  //   configs/<lang>/<version>.tar.zst     corpus_configs/<lang>/ (attributes/, corpora/, modes/)
+  //   corpora/<corpus>/<version>.tar.zst   registry/<corpus> + data/<dir>/ of one CWB corpus
+  // with configs/<lang>/current and corpora/<corpus>/current naming the version to use.
+  "r2_buckets": [{ "binding": "DATA", "bucket_name": "korp-corpora" }],
+
+  "vars": {
+    // The language, e.g. "fkv": picks configs/<KORP_LANG>/ in R2
+    "KORP_LANG": "fkv",
+    // The corpora the container fetches (and the only ones it may fetch),
+    // space-separated CWB names (lowercase, as in the registry), e.g.
+    // "fkv_admin_20210319 fkv_bible_20210319". Per language: the file names
+    // in corpus_configs/<lang>/corpora/.
+    "CORPORA": "",
+    // Container size, as JSON: {"vcpu": 1, "memoryMib": 1024, "diskMb": 2000},
+    // or a named type like "\"standard-1\"". Empty: DEFAULT_RESOURCES in src/index.ts.
+    "CONTAINER_INSTANCE": "",
+    // Korp's CORS_ALLOW_ORIGINS, a JSON list, e.g. ["https://gtweb.uit.no"].
+    // Not needed when the frontend is served by this Worker.
+    "CORS_ALLOW_ORIGINS": "[]"
+  },
+  // ADMIN_TOKEN: bearer token for POST /admin/restart. Passed on every deploy
+  // with --secrets-file (wrangler can't put a secret before the Worker exists).
+  "secrets": { "required": ["ADMIN_TOKEN"] }
+}

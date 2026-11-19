@@ -7,7 +7,7 @@ pub enum Task {
     BuildBack,
     BuildFront(Lang),
     PushBack,
-    DeployBack(Lang),
+    DeployBack { lang: Lang, dry_run: bool },
     DeployFront(Lang),
 }
 
@@ -75,8 +75,17 @@ fn command() -> Command {
                 .subcommand_required(true)
                 .subcommand(
                     Command::new("back")
-                        .about("Deploy the API Worker of one language (runs 'wrangler deploy' in korp-backend-<lang>/)")
-                        .arg(lang_arg()),
+                        .about(
+                            "Build and push the backend image, and deploy the Worker korp-<lang> from the template in \
+                             worker/ (see worker/README.md); restarts the container",
+                        )
+                        .arg(lang_arg())
+                        .arg(
+                            Arg::new("dry-run")
+                                .long("dry-run")
+                                .action(clap::ArgAction::SetTrue)
+                                .help("Don't build or push the image; only check R2 and run 'wrangler deploy --dry-run'"),
+                        ),
                 )
                 .subcommand(
                     Command::new("front")
@@ -104,7 +113,7 @@ pub fn parse_args() -> Args {
             _ => unreachable!("clap: subcommand required"),
         },
         Some(("deploy", m)) => match m.subcommand() {
-            Some(("back", m)) => Task::DeployBack(lang(m)),
+            Some(("back", m)) => Task::DeployBack { lang: lang(m), dry_run: m.get_flag("dry-run") },
             Some(("front", m)) => Task::DeployFront(lang(m)),
             _ => unreachable!("clap: subcommand required"),
         },
