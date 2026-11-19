@@ -10,15 +10,18 @@ need to know (decisions, names, URLs) under the task.
 
 ## Context (for every task)
 
-- **Goal:** host Giellatekno's Korp (18 languages + 3 combined instances) on
+- **Goal:** host Giellatekno's Korp (18 languages, one instance each) on
   Cloudflare, replacing the old on-prem gtweb-02 setup (`README.md` still
   describes the old setup). Same concepts as the Apertium deployment:
   `claude-log` sections 4 (architecture) and 5 (Cloudflare gotchas); the code
   is in `~/gut/giellatekno/apertium` (`deploy/cloudflare/src/index.ts`,
   `wrangler.jsonc`, `manage.py`).
-- **Status (2026-11-19):** fkv runs end to end on the test account:
-  https://korp-fkv.uit-anders.workers.dev (frontend at `/`, API at `/api`,
-  corpora from R2). The other languages wait for their CWB data (task 7).
+- **Status (2026-11-19):** all 18 languages run end to end on the test
+  account: `https://korp-<lang>.uit-anders.workers.dev` (frontend at `/`, API
+  at `/api`, corpora from R2). See task 7 for what's left.
+- **CWB data:** `~/misc/cwb/corpora/gt_cwb/{registry,data}` on Anders's machine
+  has every corpus the configs reference (plus many old compilations; ignore
+  its `config/` and `gt_cwb/`). Pass it with `--cwb-dir`.
 - **Accounts:** test = "UiT / Anders Lorentsen" (`manage/CLOUDFLARE_ACCOUNT_ID`,
   has Workers Paid/Containers), prod = "Giellatekno" (no Workers Paid yet). Work
   on test.
@@ -95,7 +98,8 @@ langs/<lang>/current              text: the release id in use, e.g. 20261119T082
   derived from the API token. `--cwb-dir` defaults to `../cwb-data`.
 - Sizes: CWB data is already compressed (sme_news 343 MB → 282 MB with zstd
   -19); the download dominates cold start.
-- In R2 now: fkv only (release `20261119T082811Z`, 6.65 MB, 5 corpora + config).
+- In R2 now: all 18 languages (one release each, 2026-11-19; fkv's is
+  `20261119T082811Z`). sme was uploaded with `--skip-missing` (task 7).
 
 ### 4. API Worker — DONE
 
@@ -141,74 +145,86 @@ each language that has local CWB data, and check that Korp 9 accepts the
 configs: modes, attributes, `/corpora/info`, a concordance search per corpus.
 Fix or list what needs changing.
 
-Known so far: sme's config names the `*_20211118` corpora, while
-`compile-cwb-mono` made `*_20261026` (8 sme corpora, 719 MB, in
-`compile-cwb-mono/compiled_mono/cwb/`). Either rename in the config or
-recompile; decide with Anders.
+Known so far (2026-11-19, from the deployed instances, see task 7): every
+corpus answers `/info` and a concordance search, and sme's default mode lists
+its 8 corpora. Not yet checked: attributes in the frontend (sidebar,
+statistics, extended search) per language. sme's config uses the
+`*_20211118` corpora (from `gt_cwb`); `compile-cwb-mono` made newer
+`*_20261026` ones, not used yet.
 
-**Done when:** fkv works fully (it does, as far as tested); a list of needed
-changes for the others.
+**Done when:** a list of needed config changes per language (or none).
 
-## 7. All languages, and the combined instances smi / nsu / other
+## 7. All languages — DONE (deployed 2026-11-19)
 
-**Waiting for:** Anders is locating the CWB data for the other languages.
-Locally there is only fkv (`cwb-data/`) and sme (`compile-cwb-mono/compiled_mono/cwb/`).
-
-Per language, once the data is there:
+All 18 languages are uploaded and deployed: fao fit fkv koi kpv mdf mhr mrj myv
+olo sma sme smj smn sms udm vep vro, each at
+`https://korp-<lang>.uit-anders.workers.dev`. Per language:
 
 ```
-cargo run --release -- data upload <lang> --cwb-dir <dir> --dry-run
-cargo run --release -- data upload <lang> --cwb-dir <dir>
-cargo run --release -- deploy <lang> --dry-run
-cargo run --release -- deploy <lang>
+cargo run --release -- data upload <lang> --cwb-dir ~/misc/cwb/corpora/gt_cwb [--dry-run]
+cargo run --release -- deploy <lang> [--dry-run]
 ```
 
-The 18 languages: fao fit fkv koi kpv mdf mhr mrj myv olo sma sme smj smn sms
-udm vep vro.
+Checked live (2026-11-19): every page loads; every `/api/info` answers (cold
+start 16–34 s, mhr the slowest); a concordance search on every corpus works
+(87 of 88, see below). Uploads were 2.9 GB before compression in total, mhr
+the largest (1.18 GB); it fits the default container (1 vCPU, 1 GB, 2 GB
+disk), since the entrypoint streams archives into `tar`.
 
-**Combined instances.** `gtweb2_config/corpus_configs/` (and `front/`) also
-has three directories that are not language codes. They come from the old
-setup, where one Korp held several languages as *modes*:
-
-| instance | contents | default mode | other modes |
-|---|---|---|---|
-| `smi` | all Sámi languages | sme ("North sami texts") | sma, smj, smn, sms |
-| `nsu` | non-Sámi Uralic | kpv ("Komi-Zyrian texts") | koi, mdf, mhr, mrj, myv, udm |
-| `other` | the rest | fkv ("Kven text") | fao, fit, olo, vep, vro |
-
-They use the same corpora as the single-language instances, so once those are
-uploaded they need no data of their own (archives are content-addressed and
-shared). Checked against the per-language configs (2026-11-19):
-- `nsu` (22 corpora) and `other` (22) list exactly the corpora of their languages.
-- `smi` (39) has `sme_wikipedia_20211118`, which `sme`'s config doesn't, and
-  lacks sme's historical-orthography corpora (`friis_bible`, `friis_ficti`,
-  `friis_news`, `itkonen_news`, `leem_bible`, `leem_ficti`). Check with Anders
-  whether that's intended.
-
-To do for them:
-- Add `smi`, `nsu`, `other` to `manage/src/lang.rs` (only the 18 language
-  codes are accepted now). Check that nothing treats the instance name as a
-  language code (e.g. a locale, `LC_COLLATE`, the frontend's default language).
-- Worker names would be `korp-smi`, `korp-nsu`, `korp-other`.
-- The configs are Korp 8 and untested with Korp 9 (task 6); modes are the
-  part most likely to need changes.
-- Decide with Anders whether all three are still wanted next to the
-  single-language instances.
-
-**Done when:** every instance whose data exists answers on the test account,
-and the selector page (`selector-page/index.html`) lists them.
+Loose ends:
+- **sme's historical-orthography corpora** (`friis_bible`, `friis_ficti`,
+  `friis_news`, `itkonen_news`, `leem_bible`, `leem_ficti`) were never
+  compiled, so sme was uploaded with `--skip-missing`. Its modes `friis`,
+  `leem` and `itkonen` still list them (`/api/corpora/config?mode=friis`), so
+  choosing one of those modes in the frontend fails. Either remove those modes
+  from `corpus_configs/sme/` until the corpora exist, or compile them
+  (`gen-altorth-korps/`, see *Later*).
+- **mhr_news_20201209:** the match-everything query `[]` gives a 500
+  ("unexpected backend error"); normal word searches work (~0.2 s). Probably
+  memory (1 GB) when counting all hits of a large corpus; check the container
+  log, and consider a bigger instance for mhr (`CONTAINER_INSTANCE`).
+- **`deploy` of a brand-new Worker** ends with "restart failed": workers.dev
+  answers 404 (1042) / 500 (1101) for longer than the 10 s the restart
+  retries (happened for kpv and fao). The deploy itself is fine, and a new
+  Worker has no container to restart; `manage restart <lang>` afterwards
+  worked. Fix: retry longer (~60 s), or skip the restart when the Worker is new.
+- **sme_wikipedia:** not in sme's config (only in the old `smi` one). Anders
+  is checking whether it should be in Korp at all (quality).
+- Cloudflare's bot check answers 403 (error 1010) to Python's default
+  `urllib` User-Agent; set a User-Agent in scripts that call the API.
 
 ## Later
 
-- Cold start: break down the 26 s (provisioning vs. R2 download vs. unpack);
-  choose the instance size from measured peak memory, per language (sme is
-  ~100× fkv).
+- Cold start: 16–34 s per language (fkv 26 s on its first deploy). Break it
+  down (provisioning vs. R2 download vs. unpack); choose the instance size
+  from measured peak memory, per language (mhr's data is ~180× fkv's).
+- **Combined instances `smi` / `nsu` / `other` (parked; maybe dropped).**
+  `gtweb2_config/corpus_configs/` (and `front/`) has three directories that
+  aren't language codes, from the old setup where one Korp held several
+  languages as *modes*. Anders wants to move away from them; their corpora are
+  all in the single-language instances. If they're wanted after all:
+
+  | instance | contents | default mode | other modes |
+  |---|---|---|---|
+  | `smi` | all Sámi languages | sme | sma, smj, smn, sms |
+  | `nsu` | non-Sámi Uralic | kpv | koi, mdf, mhr, mrj, myv, udm |
+  | `other` | the rest | fkv | fao, fit, olo, vep, vro |
+
+  - No data of their own: archives are content-addressed, so `data upload`
+    reuses the per-language archives already in R2. `nsu` (22 corpora) and
+    `other` (22) list exactly their languages' corpora; `smi` (39) has
+    `sme_wikipedia_20211118` (see task 7) and lacks sme's
+    historical-orthography corpora (fine, per Anders).
+  - Add `smi`, `nsu`, `other` to `manage/src/lang.rs` (only the 18 language
+    codes are accepted now), and check that nothing treats the instance name
+    as a language code (a locale, `LC_COLLATE`, the frontend's default language).
+  - Workers `korp-smi`, `korp-nsu`, `korp-other`; check their modes with Korp 9.
 - More management commands: `status`, `logs`, `usage`, `images list|prune`
   (ideas from Apertium's `manage.py`).
 - Prod account (needs Workers Paid), URLs (gtweb.uit.no reverse proxy like
   `/jorgal/`, see `claude-log` section 5). The selector page
   (`selector-page/index.html`, redesigned 2026-11-19) links to
   `https://gtweb-02.uit.no/korp/<lang>`; change the links when the URLs are
-  decided, and add rows for new instances.
+  decided (the test URLs are `https://korp-<lang>.uit-anders.workers.dev`).
 - Historical-orthography corpora (`gen-altorth-korps/`).
 - Update `README.md` (it describes the old gtweb-02 setup).
