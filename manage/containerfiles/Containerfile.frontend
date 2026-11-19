@@ -1,63 +1,40 @@
-FROM korp-frontend-base AS builder
+# The Korp frontend of one language: korp-vue (Språkbanken's Vue 3 frontend)
+# with our instance code (korp-vue-instance/) and the language's settings
+# (gtweb2_config/front/config-<lang>.yaml). The result is only the built static
+# site, served by the language's Worker (manage/worker/) as static assets.
+#
+# Build (`build front <lang>` and `deploy <lang>` in the manage tool do this),
+# from the korp repo root, which is the build context (see .dockerignore there):
+#
+#   docker build --build-arg lang=fkv --output type=local,dest=<dir> \
+#       -f manage/containerfiles/Containerfile.frontend .
+#
+# KORP_VUE_COMMIT below pins korp-vue: branch api-v9 for now (the Korp 9 API,
+# what Språkbanken's own Korp runs against ws/korp/v9), 2026-11-11. Update it
+# together with KORP_BACKEND_COMMIT in Containerfile.backend.
 
-ARG instance
+FROM docker.io/library/node:24-trixie-slim AS build
+RUN apt-get update && apt-get install --no-install-recommends -y git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY ./gtweb2_config/front/config-${instance}.yaml /korp/korp-frontend/app/config.yml
-RUN mkdir -p /korp/korp-frontend/app/modes
+ARG KORP_VUE_COMMIT=a51086587009acf13c44f9337d90545756e9250f
+WORKDIR /korp-vue
+RUN git init -q && \
+    git remote add origin https://github.com/spraakbanken/korp-vue.git && \
+    git fetch -q --depth 1 origin "$KORP_VUE_COMMIT" && \
+    git checkout -q FETCH_HEAD
+# korp-vue's .npmrc has ignore-scripts=true: no install scripts are run
+RUN npm ci --no-audit --no-fund
 
-# yarn build failed on this file not being present, with "invalid syntax",
-# because some file did a require() on this, which some earlier part of the
-# build process replaced with some non-js text about the file not being
-# found.
-RUN touch /korp/korp-frontend/app/modes/default_mode.js
-WORKDIR /korp/korp-frontend
+# Instance code (the same for all languages), then the language's settings.
+# Before these, so all languages share the cached layers above.
+COPY korp-vue-instance/ instance/
+ARG lang
+COPY gtweb2_config/front/config-${lang}.yaml instance/config.yml
 
-# 'yarn build' fails with 'Module not found: Error: Can't resolve 'custom' in '/korp/korp-frontend/app/scripts/auth'.
-# Workaround: Create this module, which must be app/custom/init.ts
-# and fill it with an 'stub' auth module that does nothing, like the dummyAuth in
-# app/scripts/auth/init.ts
-# RUN mkdir /korp/korp-frontend/app/custom
-# COPY <<EOF /korp/korp-frontend/app/custom/init.ts
-# const dummyAuth = {
-#     init: () => false,
-#     initAngular: () => {},
-#     login: () => {},
-#     logout: () => {},
-#     getAuthorizationHeader: () => ({}),
-#     hasCredential: () => false,
-#     getCredentials: () => [],
-#     getUsername: () => "",
-#     isLoggedIn: () => false,
-# }
-# EOF
+# BASE=./ makes asset URLs relative, so the site works at any path (the
+# Worker's root, or behind a reverse proxy at some /path/)
+RUN BASE=./ npx vite build
 
-RUN yarn build
-
-
-FROM docker.io/library/nginx
-
-# Workaround for https://github.com/containers/buildah/issues/6048
-ARG Dollar=$
-
-COPY --from=builder /korp/korp-frontend/dist /usr/share/nginx/html/
-
-# RUN grep -l "korp_backend_url:[ ]?\"https://DELIBERATELY.INVALID\"" /usr/share/nginx/html/*.js > /js_file
-# 
-# RUN <<EOF
-# if [ $(wc -l </js_file) -ne 1 ]; then
-#     echo "IMAGE BUILD ERROR: Cannot find .js file with defintion of korp_backend_url, cannot continue."
-#     exit 1;
-# fi
-# EOF
-# 
-# COPY --chmod=0755 <<EOF /entry.sh
-# #!/bin/bash
-# if [ ! -v BACKEND ]; then
-#     echo "CRITICAL: env var BACKEND is not set, korp frontend won't work"
-# fi
-# sed -i "s,korp_backend_url:\"https://DELIBERATELY.INVALID\",korp_backend_url:\"${Dollar}BACKEND\"," $(cat /js_file)
-# exec "${Dollar}@"
-# EOF
-# 
-# ENTRYPOINT [ "/entry.sh" ]
-# CMD ["nginx", "-g", "daemon off;"]
+FROM scratch
+COPY --from=build /korp-vue/dist /

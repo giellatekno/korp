@@ -1,9 +1,14 @@
-# korp-backend (Språkbanken's, version 9, branch dev), with Corpus WorkBench.
+# korp-backend (Språkbanken's, version 9, branch dev, pinned), with Corpus WorkBench.
 #
 # Build (`build back` in the manage tool does this), from the korp repo root,
 # which is the build context (see .dockerignore there):
 #
 #   docker build --load -t korp-backend -f manage/containerfiles/Containerfile.backend .
+#
+# KORP_BACKEND_COMMIT below pins korp-backend: branch dev for now (the Korp 9
+# API), 2026-11-18. Upstream changes often: update it deliberately, together
+# with KORP_VUE_COMMIT in Containerfile.frontend (the API they speak must
+# match). The manage tool reads it from here for the image tag.
 #
 # Nothing corpus-specific is in the image. At runtime it needs:
 #   /corpora        a directory with CWB's registry/ and data/ (read-only is
@@ -20,7 +25,7 @@
 #   docker run --rm -p 127.0.0.1:8000:8000 \
 #       -v ./cwb-data:/corpora:ro \
 #       -v ./gtweb2_config/corpus_configs/fkv:/corpus_config:ro \
-#       korp-backend:9.0.0-dev
+#       korp-backend
 
 # Corpus WorkBench, compiled in its own image (sources:
 # ~/gut/giellatekno/giellatekno.azurecr.io/corpusworkbench). Its binaries are
@@ -47,8 +52,12 @@ ENV UV_PYTHON_DOWNLOADS=never \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy
 
-WORKDIR /korp
-RUN git clone --depth 1 --branch dev https://github.com/spraakbanken/korp-backend
+ARG KORP_BACKEND_COMMIT=424170aba893391b7842be13380bce84896b0721
+WORKDIR /korp/korp-backend
+RUN git init -q && \
+    git remote add origin https://github.com/spraakbanken/korp-backend.git && \
+    git fetch -q --depth 1 origin "$KORP_BACKEND_COMMIT" && \
+    git checkout -q FETCH_HEAD
 
 # The "server" extra installs gunicorn (and uvloop). --no-dev: without the
 # dev/test dependency groups. --locked: exactly what uv.lock says.

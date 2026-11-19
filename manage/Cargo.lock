@@ -976,13 +976,11 @@ name = "manage"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "base64 0.23.0",
  "chrono",
  "clap",
  "hex",
  "humansize",
  "jsonc-parser",
- "mime_guess",
  "reqwest",
  "rusty-s3",
  "serde",

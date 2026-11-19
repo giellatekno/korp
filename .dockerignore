@@ -2,3 +2,5 @@
 # the Containerfiles in manage/containerfiles/ COPY from it.
 *
 !gtweb2_config/
+!korp-vue-instance/
+korp-vue-instance/port-translations.py

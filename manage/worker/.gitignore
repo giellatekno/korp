@@ -4,3 +4,4 @@ node_modules/
 .dev.vars
 secrets*.env
 worker-configuration.d.ts
+dist/

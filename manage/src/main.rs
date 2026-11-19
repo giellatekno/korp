@@ -1,17 +1,13 @@
-mod assets_upload;
-mod base64;
 mod cf_models;
 pub mod childprocess;
 mod cli;
 mod corpora;
-mod deploy_back;
+mod deploy;
 mod docker;
 mod lang;
-mod manifest;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use crate::assets_upload::deploy_to_cloudflare;
 use crate::childprocess::{SubprocessError, child_exit_ok};
 use crate::cli::{Args, Task};
 use crate::docker::{DOCKER, ImageName};
@@ -22,13 +18,11 @@ use crate::lang::Lang;
 const ACCOUNT_ID_FILE: &str = "CLOUDFLARE_ACCOUNT_ID";
 
 /// Directory (in manage/) where wrangler is installed (node_modules), to run it
-/// from: the Worker template of all languages (see src/deploy_back.rs).
+/// from: the Worker template of all languages (see src/deploy.rs).
 const WRANGLER_DIR: &str = "worker";
 
-/// Tag of the korp-backend image. The Containerfile clones korp-backend's dev
-/// branch (version 9.0.0.dev0), so this doesn't pin anything.
-/// TODO: derive it from the built image (korp-backend version + commit, CWB version).
-const KORP_BACKEND_TAG: &str = "9.0.0-dev";
+/// Version part of the backend image tag, followed by the short korp-backend commit.
+const KORP_BACKEND_VERSION: &str = "9.0.0-dev";
 
 struct Config<'a> {
     cwd: &'a Path,
@@ -76,25 +70,32 @@ fn get_build_context_dir(cwd: &Path) -> std::io::Result<&Path> {
     Ok(dir)
 }
 
-fn frontend_image_name(lang: Lang) -> String {
-    format!("korp-frontend-{lang}")
-}
-
-/// Run `docker build --load -f <containerfile> -t <tag>... [--build-arg <arg>...] <context>`,
-/// with the repo root as the context, and `<root>/manage/containerfiles/<containerfile>`.
-fn docker_build(
-    config: &Config,
-    containerfile: &str,
-    tags: &[&str],
-    build_args: &[String],
-) -> Result<(), SubprocessError> {
+/// Run `docker build -f <root>/manage/containerfiles/<containerfile> [--build-arg <arg>...] <root>`,
+/// with the repo root as the context. With `Output::Image`, the image is loaded
+/// into docker with the given tags; with `Output::Dir`, the files of the final
+/// stage are written into that directory instead (no image).
+fn docker_build(config: &Config, containerfile: &str, output: Output, build_args: &[String]) -> Result<(), SubprocessError> {
     let context = get_build_context_dir(config.cwd)?;
     let mut cmd = std::process::Command::new(DOCKER);
     // -f is relative to the process's cwd, not to the context
     let containerfile = context.join("manage/containerfiles").join(containerfile);
-    cmd.arg("build").arg("--load").arg("-f").arg(containerfile);
-    for tag in tags {
-        cmd.arg("-t").arg(tag);
+    // --network host: the build's downloads (apt, npm, git) use the host's
+    // network directly. Docker's own network assumes MTU 1500, so behind a VPN
+    // with a smaller MTU (e.g. 1191) larger downloads hang and get reset.
+    // The host's network for the RUN steps (downloads): docker's bridge network
+    // has MTU 1500, which breaks downloads over a VPN with a smaller MTU (e.g.
+    // tun0 with 1191: connections hang or are reset).
+    cmd.arg("build").arg("--network").arg("host").arg("-f").arg(containerfile);
+    match output {
+        Output::Image(tags) => {
+            cmd.arg("--load");
+            for tag in tags {
+                cmd.arg("-t").arg(tag);
+            }
+        }
+        Output::Dir(dir) => {
+            cmd.arg("--output").arg(format!("type=local,dest={}", dir.display()));
+        }
     }
     for build_arg in build_args {
         cmd.arg("--build-arg").arg(build_arg);
@@ -104,61 +105,51 @@ fn docker_build(
     Ok(())
 }
 
-/// Build the image korp-frontend-base (korp-frontend with its dependencies installed)
-fn build_front_base(config: &Config) -> Result<(), SubprocessError> {
-    tracing::info!("build container image 'korp-frontend-base'");
-    docker_build(
-        config,
-        "Containerfile.frontend-base",
-        &["korp-frontend-base"],
-        &[],
-    )
+/// The upstream commit a Containerfile pins: the default of its
+/// `ARG <arg>=<sha>` line (the Containerfiles are the one place the pins are).
+fn pinned_commit(config: &Config, containerfile: &str, arg: &str) -> anyhow::Result<String> {
+    let path = get_build_context_dir(config.cwd)?.join("manage/containerfiles").join(containerfile);
+    let text = std::fs::read_to_string(&path)?;
+    let prefix = format!("ARG {arg}=");
+    text.lines()
+        .find_map(|line| line.strip_prefix(&prefix))
+        .map(|sha| sha.trim().to_string())
+        .filter(|sha| sha.len() == 40 && sha.chars().all(|c| c.is_ascii_hexdigit()))
+        .ok_or_else(|| anyhow::anyhow!("no `{prefix}<40-hex commit>` line in {}", path.display()))
 }
 
-/// Build the image korp-frontend-LANG (the built frontend of one language, served by nginx)
-fn build_front(config: &Config, lang: Lang) -> Result<(), SubprocessError> {
-    build_front_base(config)?;
-    let image_name = frontend_image_name(lang);
-    tracing::info!("build container image '{image_name}'");
+enum Output<'a> {
+    Image(&'a [&'a str]),
+    Dir(&'a Path),
+}
+
+/// Where the built frontend of `lang` goes: worker/.build/<lang>/dist, next to
+/// the language's generated wrangler.json, which serves it as static assets.
+fn frontend_dir(config: &Config, lang: Lang) -> PathBuf {
+    config.cwd.join(WRANGLER_DIR).join(".build").join(lang.as_str()).join("dist")
+}
+
+/// Build the frontend of `lang` (korp-vue + korp-vue-instance/ +
+/// gtweb2_config/front/config-<lang>.yaml) into frontend_dir().
+fn build_front(config: &Config, lang: Lang) -> anyhow::Result<PathBuf> {
+    let dir = frontend_dir(config, lang);
+    let commit = pinned_commit(config, "Containerfile.frontend", "KORP_VUE_COMMIT")?;
+    tracing::info!("build the frontend of {lang} (korp-vue {}) into {}", &commit[..7], dir.display());
+    // Start empty: no files left over from an earlier build
+    if dir.exists() {
+        std::fs::remove_dir_all(&dir)?;
+    }
+    std::fs::create_dir_all(&dir)?;
     docker_build(
         config,
         "Containerfile.frontend",
-        &[&image_name],
-        &[format!("instance={lang}")],
-    )
-}
-
-/// Build the frontend of `lang`, copy the files out of the image into html/, and
-/// upload them as the static-assets Worker korp-frontend-<lang>.
-async fn deploy_front(config: &Config<'_>, lang: Lang) -> anyhow::Result<()> {
-    // read these first, to fail before the (long) build
-    let account_id = config.cf_account_id()?;
-    let api_token = config.cf_api_token()?;
-
-    let image_name = frontend_image_name(lang);
-    let static_assets_dir = config.cwd.join("html");
-
-    build_front(config, lang)?;
-
-    // delete the static assets before copying the new one from the image, to avoid
-    // potential stale files
-    if static_assets_dir.is_dir() {
-        std::fs::remove_dir_all(&static_assets_dir)?;
-    } else if static_assets_dir.exists() {
-        anyhow::bail!(
-            "{} exists, but is not a directory, don't know what to do, can't continue",
-            static_assets_dir.display()
-        );
+        Output::Dir(&dir),
+        &[format!("lang={lang}")],
+    )?;
+    if !dir.join("index.html").is_file() {
+        anyhow::bail!("the frontend build made no index.html in {}", dir.display());
     }
-
-    tracing::info!("copy html dir from image");
-    let container_name = docker::run_detached(&image_name, None).await?;
-    let dest = config.cwd.to_str().expect("utf-8 path");
-    docker::copy(&format!("{container_name}:/usr/share/nginx/html"), dest).await?;
-    docker::stop(&container_name).await?;
-
-    deploy_to_cloudflare(&account_id, &api_token, &image_name, &static_assets_dir).await?;
-    Ok(())
+    Ok(dir)
 }
 
 /// Build the backend image (one image for all languages). Tagged both as
@@ -168,13 +159,13 @@ fn build_back(config: &Config) -> anyhow::Result<ImageName> {
     let image_name = ImageName::builder()
         .registry(format!("registry.cloudflare.com/{}", config.cf_account_id()?))
         .name("korp-backend".to_string())
-        .tag(KORP_BACKEND_TAG.to_string())
+        .tag(format!("{KORP_BACKEND_VERSION}-{}", &pinned_commit(config, "Containerfile.backend", "KORP_BACKEND_COMMIT")?[..7]))
         .build()
         .expect("name is set");
     docker_build(
         config,
         "Containerfile.backend",
-        &[&image_name.to_name_and_tag_string(), &image_name.to_string()],
+        Output::Image(&[&image_name.to_name_and_tag_string(), &image_name.to_string()]),
         &[],
     )?;
     Ok(image_name)
@@ -196,20 +187,21 @@ fn push_back(config: &Config, image_name: &ImageName) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Deploy the Worker korp-<lang>: build and push the backend image (unless dry
-/// run), then the rest in deploy_back.rs.
-fn deploy_back(config: &Config, lang: Lang, dry_run: bool) -> anyhow::Result<()> {
+/// Deploy the Worker korp-<lang>: build the frontend, build and push the
+/// backend image (unless dry run), then the rest in deploy.rs.
+fn deploy(config: &Config, lang: Lang, dry_run: bool) -> anyhow::Result<()> {
     let account_id = config.cf_account_id()?;
+    build_front(config, lang)?;
     let repository = format!("registry.cloudflare.com/{account_id}/korp-backend");
     let image = if dry_run {
-        format!("{repository}@{}", deploy_back::PLACEHOLDER_IMAGE_DIGEST)
+        format!("{repository}@{}", deploy::PLACEHOLDER_IMAGE_DIGEST)
     } else {
         let image_name = build_back(config)?;
         push_back(config, &image_name)?;
-        deploy_back::pushed_image_digest(&image_name.to_string(), &repository)?
+        deploy::pushed_image_digest(&image_name.to_string(), &repository)?
     };
     tracing::info!(image, "backend image");
-    deploy_back::deploy(&deploy_back::Options {
+    deploy::deploy(&deploy::Options {
         manage_dir: config.cwd,
         account_id: &account_id,
         lang: lang.as_str(),
@@ -238,15 +230,17 @@ async fn main() -> anyhow::Result<()> {
         Task::BuildBack => {
             build_back(&config)?;
         }
-        Task::BuildFront(lang) => build_front(&config, lang)?,
+        Task::BuildFront(lang) => {
+            let dir = build_front(&config, lang)?;
+            println!("Built the frontend of {lang} into {}", dir.display());
+        }
         Task::PushBack => {
             let image_name = build_back(&config)?;
             push_back(&config, &image_name)?;
         }
-        Task::DeployBack { lang, dry_run } => deploy_back(&config, lang, dry_run)?,
-        Task::DeployFront(lang) => deploy_front(&config, lang).await?,
+        Task::Deploy { lang, dry_run } => deploy(&config, lang, dry_run)?,
         Task::Restart(lang) => {
-            deploy_back::restart_lang(&cwd, &config.cf_account_id()?, &config.cf_api_token()?, lang.as_str()).await?
+            deploy::restart_lang(&cwd, &config.cf_account_id()?, &config.cf_api_token()?, lang.as_str()).await?
         }
         Task::Data(ref matches) => corpora::run(&config.cf_account_id()?, &config.cf_api_token()?, matches).await?,
     }

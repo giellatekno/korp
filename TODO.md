@@ -183,7 +183,7 @@ and the layout is documented (here and in the tool's help).
 
 **State (2026-11-19):** merged into main with task 3. One Worker per language
 (`korp-<lang>`), all from the same code and template in `manage/worker/`
-(`README.md` there); `manage deploy back <lang> [--dry-run]` builds, pushes,
+(`README.md` there); `manage deploy back <lang> [--dry-run]` (now `manage deploy <lang>`) builds, pushes,
 pins the image by digest, writes `worker/.build/<lang>/wrangler.json`,
 deploys and restarts. The Worker uses task 3's layout: at container start the
 Durable Object reads `langs/<lang>/current` and that release, passes
@@ -238,7 +238,38 @@ start in parallel with a stub).
 **Done when:** fkv's API answers `/info` and `/concordance` on the test
 account, from data in R2, deployed by the tool.
 
-## 5. Frontend (static Worker)
+## 5. Frontend (built and tested locally; the deploy is Anders's)
+
+**State (2026-11-19):** the frontend is now **korp-vue** (Språkbanken's Vue 3
+frontend; korp-frontend is deprecated upstream), branch `api-v9`, which speaks
+the Korp 9 API of our backend. Språkbanken's own Korp runs exactly this
+combination (korp-vue against `ws.spraakbanken.gu.se/ws/korp/v9`, 9.0.0.dev0).
+Both are pinned: `ARG KORP_VUE_COMMIT` in `Containerfile.frontend` (a510865,
+2026-11-11) and `ARG KORP_BACKEND_COMMIT` in `Containerfile.backend` (424170a,
+2026-11-18, the code that was already deployed). Update them together.
+
+- Served by the same Worker as the API (static assets, `run_worker_first` for
+  `/api` and `/admin/*`), so no CORS and no separate frontend Worker.
+  `manage deploy <lang>` builds the frontend into `worker/.build/<lang>/dist/`,
+  builds and pushes the image, and deploys both; `deploy front` and the REST
+  asset upload (`assets_upload.rs`) are gone.
+- Instance code in `korp-vue-instance/` (its README): settings from
+  `gtweb2_config/front/config-<lang>.yaml` (the old `korp_backend_url` lines
+  are removed: the API URL is computed in the browser as `api` next to the
+  page), UiT + Giellatekno logos, our own footer, UI translations ported from
+  the old ones by English text (~145 of ~330 strings; the rest in English).
+- Tested locally (wrangler dev): the page loads, a search in fkv_news shows
+  501 hits with the sidebar, in English and North Sámi.
+- The manage tool builds with `docker build --network host`: over the VPN
+  (tun0, MTU 1191) downloads in builds on docker's bridge network hang.
+
+Left: deploy (`manage deploy fkv`); the old static Workers `korp-frontend-fkv`
+and `korp-frontend-sme` (Korp 8 frontends) on the test account can be deleted; `logo_change/` (patch for
+the old frontend) can go; translations of attribute values
+(`translations/corpora-<lang>.json`) aren't ported.
+
+### Original task description
+
 
 No containers at runtime: build in a container, copy the files out, upload them
 as a Worker with static assets only. Most of it exists: `build_front_base`,
@@ -255,7 +286,7 @@ REST API, no wrangler) in `manage/src/`.
 - Translations from `gtweb2_config/translations/`, logos from `logo_change/`.
 
 **Done when:** `front-fkv` is deployed as a static Worker on the test account
-and searches work against the task-4 API.
+and searches work against the task-4 API. (Changed: served by `korp-fkv`.)
 
 ## 6. Check corpus configs against Korp 9 (independent)
 

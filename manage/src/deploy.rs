@@ -1,5 +1,6 @@
-//! Deploy the Korp Worker of one language (`korp-<lang>`): korp-backend in a
-//! container behind `/api/*`, see `worker/src/index.ts`.
+//! Deploy the Korp Worker of one language (`korp-<lang>`): the frontend as
+//! static assets, and korp-backend in a container behind `/api/*`, see
+//! `worker/src/index.ts`.
 //!
 //! One Worker per language, all from the template `worker/wrangler.jsonc` and
 //! the same code (`worker/src/index.ts`). For a language, this:
@@ -8,15 +9,17 @@
 //!    upload <lang>` makes one; the Worker reads it when the container starts),
 //! 2. type-checks the Worker (`npm run check` in `worker/`),
 //! 3. writes `worker/.build/<lang>/wrangler.json`: the template with the
-//!    Worker name, `KORP_LANG` and the image pinned by digest,
+//!    Worker name, `KORP_LANG` and the image pinned by digest; its assets are
+//!    the built frontend next to it, `worker/.build/<lang>/dist/`,
 //! 4. runs `wrangler deploy` with it, with the secrets in
 //!    `worker/secrets.<account id>.env` (created on the first deploy: a random
 //!    `ADMIN_TOKEN`),
 //! 5. restarts the container (`POST /admin/restart`): Durable-Object containers
 //!    don't restart on deploy, and a new container fetches the current release.
 //!
-//! Building and pushing the image is the caller's job; this gets the pushed
-//! image as `registry.cloudflare.com/<account>/korp-backend@sha256:…`.
+//! Building the frontend and building and pushing the image are the caller's
+//! job; this gets the pushed image as
+//! `registry.cloudflare.com/<account>/korp-backend@sha256:…`.
 
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::fs::OpenOptionsExt;
@@ -51,6 +54,10 @@ pub fn worker_name(lang: &str) -> String {
 
 pub fn deploy(opts: &Options) -> anyhow::Result<()> {
     let worker_dir = opts.manage_dir.join("worker");
+    let frontend = worker_dir.join(".build").join(opts.lang).join("dist").join("index.html");
+    if !frontend.is_file() {
+        bail!("no built frontend ({} is missing): run `manage build front {}`", frontend.display(), opts.lang);
+    }
     ensure_npm_install(&worker_dir)?;
     check_r2(opts, &worker_dir)?;
 

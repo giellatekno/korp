@@ -1,15 +1,18 @@
-# Korp API Worker (one per language)
+# Korp Worker (one per language)
 
-`korp-<lang>`: korp-backend (Korp 9) in a container, behind `/api/*`. One
-template for all languages (`wrangler.jsonc`, `src/index.ts`); the management
-tool generates `.build/<lang>/wrangler.json` per language and deploys it
-(`src/deploy_back.rs` in the tool).
+`korp-<lang>`: the frontend (korp-vue, static assets) and korp-backend (Korp 9)
+in a container behind `/api/*`. One template for all languages
+(`wrangler.jsonc`, `src/index.ts`); the management tool builds the language's
+frontend into `.build/<lang>/dist/`, generates `.build/<lang>/wrangler.json`
+next to it, and deploys that (`src/deploy.rs` in the tool). The frontend's
+instance code is `korp-vue-instance/` in the repo root.
 
 ```
 browser ──▶ Worker korp-<lang>.<subdomain>.workers.dev
             ├─ /api/*              Durable Object "korp-0" ──▶ korp-backend container (port 8000), prefix stripped
             ├─ POST /admin/restart stop the container (Authorization: Bearer $ADMIN_TOKEN)
-            └─ everything else     404 (task 5: the frontend, as static assets)
+            └─ everything else     the frontend: static assets, served without running the Worker
+                                   (index.html for unknown paths); it calls the API at api/ next to the page
 
 container start: the Durable Object reads R2 langs/<lang>/current → langs/<lang>/<release>.json,
 and starts the container with DATA_URL=http://data.internal/<release> and CORPORA=<its corpora>.
@@ -27,7 +30,7 @@ then starts gunicorn. Without `DATA_URL` it uses mounted directories, as before.
 ## Why one Worker per language
 
 Separate URLs, logs, stats and container sizes per language (sme's corpora are
-~50× fkv's), and each language's frontend (task 5) can live in the same Worker,
+~50× fkv's), and each language's frontend lives in the same Worker,
 so the API URL is relative and no CORS is needed. The cost is one deploy per
 language, which the tool does anyway.
 
@@ -44,9 +47,9 @@ deploy, only a restart.
 From `manage/` (the account id comes from the file `CLOUDFLARE_ACCOUNT_ID`):
 
 ```sh
-cargo run --release -- data upload fkv                 # once, and when data changes
-cargo run --release -- deploy back fkv --dry-run       # no build/push; checks R2, wrangler deploy --dry-run
-cargo run --release -- deploy back fkv                 # build + push image, deploy, restart the container
+cargo run --release -- data upload fkv           # once, and when data changes
+cargo run --release -- deploy fkv --dry-run      # builds the frontend; no image build/push; checks R2, wrangler deploy --dry-run
+cargo run --release -- deploy fkv                # frontend + image build, push, deploy, restart the container
 ```
 
 The first deploy creates `worker/secrets.<account id>.env` with a random
@@ -68,8 +71,16 @@ copy each object with `npx wrangler r2 object put korp-corpora/<key> --local --f
 ```sh
 cd worker && npm ci
 printf 'ADMIN_TOKEN="test"\n' > .dev.vars
-npx wrangler dev                               # builds the image; then curl localhost:8787/api/info
+(cd .. && cargo run --release -- build front fkv) && rm -rf dist && cp -r .build/fkv/dist dist
+npx wrangler dev        # builds the image; then open http://localhost:8787/
 ```
+
+**Over a VPN:** `wrangler dev` builds the image with docker's default network
+(MTU 1500), and downloads in the build hang or are reset when the VPN's MTU is
+smaller (e.g. tun0: 1191). The manage tool builds with `--network host` and
+isn't affected. Work around it for `wrangler dev`: build the image with `manage
+build back`, and point a copy of `wrangler.jsonc` at a Dockerfile containing
+only `FROM korp-backend:<tag>` (or set `"mtu"` in docker's daemon.json).
 
 ## Measured (fkv, 2026-11-19, locally)
 

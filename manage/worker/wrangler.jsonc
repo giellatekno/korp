@@ -1,16 +1,27 @@
-// Cloudflare Worker of one Korp language: korp-backend in a container, behind
-// /api/*. See src/index.ts.
+// Cloudflare Worker of one Korp language: the frontend (korp-vue) as static
+// assets, and korp-backend in a container behind /api/*. See src/index.ts.
 //
 // This is the template for all languages: the management tool writes a copy
 // per language (.build/<lang>/wrangler.json) with the Worker name, KORP_LANG
-// and the image pinned by digest, and deploys that. `wrangler types`
-// and `wrangler dev` read this file directly (dev builds the image itself).
+// and the image pinned by digest, and deploys that, with the language's built
+// frontend in .build/<lang>/dist/. `wrangler types` and `wrangler dev` read
+// this file directly (dev builds the image itself, and serves ./dist/: copy a
+// built frontend there, e.g. `manage build front fkv` + `cp -r .build/fkv/dist .`).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "korp-template",  // per language: korp-<lang>
   "main": "src/index.ts",
   "compatibility_date": "2026-11-17",
   "observability": { "enabled": true },
+
+  // The frontend, built by `manage build front <lang>` (relative to this file:
+  // worker/dist for the template, .build/<lang>/dist for a language). Cloudflare
+  // serves it without running the Worker; only /api and /admin reach it.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api", "/api/*", "/admin/*"]
+  },
 
   "containers": [
     {
@@ -41,7 +52,7 @@
     // or a named type like "\"standard-1\"". Empty: DEFAULT_RESOURCES in src/index.ts.
     "CONTAINER_INSTANCE": "",
     // Korp's CORS_ALLOW_ORIGINS, a JSON list, e.g. ["https://gtweb.uit.no"].
-    // Not needed when the frontend is served by this Worker.
+    // Not needed for the frontend served by this Worker (same origin).
     "CORS_ALLOW_ORIGINS": "[]"
   },
   // ADMIN_TOKEN: bearer token for POST /admin/restart. Passed on every deploy

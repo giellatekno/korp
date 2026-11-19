@@ -1,7 +1,5 @@
 //! Container images and containers, by running the `docker` command.
 
-use crate::childprocess::{SubprocessError, child_exit_ok};
-
 /// The container tool. Always docker: Cloudflare's tooling (wrangler) uses docker,
 /// and podman builds/pushes images differently enough to cause trouble (e.g.
 /// recompressed layers, so the registry digest differs from the local one).
@@ -80,43 +78,4 @@ impl std::fmt::Display for ImageName {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(formatter, "{}/{}:{}", self.registry, self.name, self.tag)
     }
-}
-
-/// Execute `docker cp <src> <dst>`.
-pub async fn copy(src: &str, dst: &str) -> Result<(), SubprocessError> {
-    let status = std::process::Command::new(DOCKER)
-        .args(["cp", src, dst])
-        .status()?;
-    child_exit_ok(&status)?;
-    Ok(())
-}
-
-/// Execute `docker stop <container_name>`.
-pub async fn stop(container_name: &str) -> Result<(), SubprocessError> {
-    let status = std::process::Command::new(DOCKER)
-        .arg("stop")
-        .arg(container_name)
-        .status()?;
-    child_exit_ok(&status)?;
-    Ok(())
-}
-
-/// Execute `docker run --rm -i --detach [--name <name>] <image>`, and return the
-/// container id.
-pub async fn run_detached(image: &str, name: Option<&str>) -> Result<String, SubprocessError> {
-    let mut cmd = std::process::Command::new(DOCKER);
-    cmd.arg("run");
-    cmd.arg("--rm");
-    cmd.arg("-i");
-    cmd.arg("--detach");
-    if let Some(name) = name {
-        cmd.arg("--name");
-        cmd.arg(name);
-    }
-    cmd.arg(image);
-    let output = cmd.output()?;
-    child_exit_ok(&output.status)?;
-    let mut stdout = output.stdout;
-    stdout.retain(|b| b.is_ascii_hexdigit());
-    Ok(String::from_utf8(stdout)?)
 }

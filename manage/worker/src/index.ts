@@ -1,5 +1,6 @@
-// The Korp Worker of one language: runs korp-backend in a container behind
-// /api/*. The same code for all languages; the language comes from the var
+// The Korp Worker of one language: the frontend (korp-vue, static assets that
+// Cloudflare serves without running this code, see "assets" in wrangler.jsonc),
+// and korp-backend in a container behind /api/*. The same code for all languages; the language comes from the var
 // KORP_LANG (see wrangler.jsonc, the template the management tool generates
 // each language's config from).
 //
@@ -8,7 +9,7 @@
 //   POST /admin/restart  (Authorization: Bearer $ADMIN_TOKEN)
 //                        → stop the container; the next request starts a new
 //                          one, with the language's current release from R2
-//   everything else      → 404 (later: the frontend, as static assets)
+//   everything else      → the frontend (static assets; index.html for unknown paths)
 //
 // What the container gets is the language's current *release* in R2 (written
 // by `manage data upload`, see `manage data --help`):
@@ -223,6 +224,7 @@ export default {
       return new Response('Korp restarted; the next request starts it with the current corpora.\n');
     }
 
-    return new Response(`Korp (${env.KORP_LANG}): the API is at /api/, e.g. /api/info\n`, { status: 404 });
+    // Only /admin/* paths other than /admin/restart get here (see run_worker_first)
+    return new Response('Not found\n', { status: 404 });
   },
 } satisfies ExportedHandler<Env>;

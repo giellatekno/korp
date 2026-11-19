@@ -7,8 +7,7 @@ pub enum Task {
     BuildBack,
     BuildFront(Lang),
     PushBack,
-    DeployBack { lang: Lang, dry_run: bool },
-    DeployFront(Lang),
+    Deploy { lang: Lang, dry_run: bool },
     Restart(Lang),
     /// `data …`, handled by corpora::run
     Data(ArgMatches),
@@ -45,12 +44,12 @@ fn command() -> Command {
                 .global(true)
                 .default_value(".CLOUDFLARE_API_TOKEN")
                 .env("CLOUDFLARE_API_TOKEN_FILE")
-                .help("File containing the Cloudflare API token (needed by 'deploy front', 'data' and 'restart')."),
+                .help("File containing the Cloudflare API token (needed by 'data' and 'restart')."),
         )
         .subcommand(
             Command::new("build")
                 .alias("b")
-                .about("Build a container image")
+                .about("Build the backend image, or the frontend of a language")
                 .subcommand_required(true)
                 .subcommand(
                     Command::new("back")
@@ -58,7 +57,10 @@ fn command() -> Command {
                 )
                 .subcommand(
                     Command::new("front")
-                        .about("Build the frontend image of one language (the frontend is compiled per language)")
+                        .about(
+                            "Build the frontend of one language (korp-vue with korp-vue-instance/ and \
+                             gtweb2_config/front/config-<lang>.yaml) into worker/.build/<lang>/dist",
+                        )
                         .arg(lang_arg()),
                 ),
         )
@@ -83,26 +85,19 @@ fn command() -> Command {
         .subcommand(
             Command::new("deploy")
                 .alias("d")
-                .about("Deploy a Worker")
-                .subcommand_required(true)
-                .subcommand(
-                    Command::new("back")
-                        .about(
-                            "Build and push the backend image, and deploy the Worker korp-<lang> from the template in \
-                             worker/ (see worker/README.md); restarts the container",
-                        )
-                        .arg(lang_arg())
-                        .arg(
-                            Arg::new("dry-run")
-                                .long("dry-run")
-                                .action(clap::ArgAction::SetTrue)
-                                .help("Don't build or push the image; only check R2 and run 'wrangler deploy --dry-run'"),
-                        ),
+                .about(
+                    "Deploy the Worker korp-<lang>: build the frontend, build and push the backend image, \
+                     deploy (see worker/README.md), restart the container",
                 )
-                .subcommand(
-                    Command::new("front")
-                        .about("Build the frontend of one language and deploy it as a static-assets Worker (korp-frontend-<lang>)")
-                        .arg(lang_arg()),
+                .arg(lang_arg())
+                .arg(
+                    Arg::new("dry-run")
+                        .long("dry-run")
+                        .action(clap::ArgAction::SetTrue)
+                        .help(
+                            "Build the frontend, but don't build or push the backend image; \
+                             only check R2 and run 'wrangler deploy --dry-run'",
+                        ),
                 ),
         )
 }
@@ -124,11 +119,7 @@ pub fn parse_args() -> Args {
             Some(("back", _)) => Task::PushBack,
             _ => unreachable!("clap: subcommand required"),
         },
-        Some(("deploy", m)) => match m.subcommand() {
-            Some(("back", m)) => Task::DeployBack { lang: lang(m), dry_run: m.get_flag("dry-run") },
-            Some(("front", m)) => Task::DeployFront(lang(m)),
-            _ => unreachable!("clap: subcommand required"),
-        },
+        Some(("deploy", m)) => Task::Deploy { lang: lang(m), dry_run: m.get_flag("dry-run") },
         Some(("data", m)) => Task::Data(m.clone()),
         Some(("restart", m)) => Task::Restart(lang(m)),
         _ => unreachable!("clap: subcommand required"),

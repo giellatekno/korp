@@ -1,0 +1,4 @@
+# English: korp-vue's own strings (src/locale/eng.yaml) are the default; these
+# replace the ones that name Språkbanken. Other languages fall back to these.
+error.footer: If you have questions, or you want to report a bug, please contact Giellatekno (giellatekno.uit.no).
+auth.description: An account is only necessary if you need to access protected corpora.
