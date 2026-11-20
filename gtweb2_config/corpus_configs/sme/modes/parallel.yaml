@@ -1,0 +1,11 @@
+order: 5
+label:
+  nob: "Parallelltekster (norsk–nordsamisk)"
+  eng: "Parallel texts (Norwegian–North Saami)"
+  sme: "Paralleallateavsttat (dáru–davvisámi)"
+  fin: "Rinnakkaistekstit (norja–pohjoissaame)"
+# korp-vue's parallel mode: multilingual Extended search, linked sentences in
+# the KWIC. The corpora carry lang + linked_to; the sme sides are listed, the
+# nob sides are hidden and come along with them.
+parallel: true
+start_lang: sme

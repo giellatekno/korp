@@ -1,0 +1,39 @@
+id: nob2sme_bible_20191210-nob
+title:
+  eng: Religion texts
+  nob: Religiøse tekster
+  sme: Oskkoldatlaš teavsttat
+  fin: Uskonnolliset tekstit
+description:
+  eng: The Norwegian side of a Norwegian–North Saami parallel corpus, aligned sentence by sentence
+  nob: Den norske siden av et norsk–nordsamisk parallellkorpus, linjert setning for setning
+  sme: Dárogielat oassi dáru–davvisámi paralleallakorpusis, cealkka cealkkas ovttastuvvon
+  fin: Norja–pohjoissaame-rinnakkaiskorpuksen norjankielinen osa, rinnastettu lause lauseelta
+mode:
+  - name: parallel
+lang: nob
+linked_to:
+  - nob2sme_bible_20191210-sme
+hide: true
+pos_attributes:
+  - pos: pos
+  - msd: msd
+  - lemma: lemma
+  - word: word
+struct_attributes:
+  - text_title: text_title
+  - text_lang: text_lang
+context:
+  - label:
+      eng: 1 sentence pair
+      nob: 1 setningspar
+      sme: 1 cealkkabárra
+      fin: 1 lausepari
+    value: 1 link
+within:
+  - label:
+      eng: sentence pair
+      nob: setningspar
+      sme: cealkkabárra
+      fin: lausepari
+    value: link

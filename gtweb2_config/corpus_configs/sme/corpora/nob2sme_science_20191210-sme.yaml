@@ -1,0 +1,38 @@
+id: nob2sme_science_20191210-sme
+title:
+  eng: Science texts
+  nob: Vitenskaplige tekster
+  sme: Dieđalaš teavsttat
+  fin: Tieteelliset tekstit
+description:
+  eng: The North Saami side of a Norwegian–North Saami parallel corpus, aligned sentence by sentence
+  nob: Den nordsamiske siden av et norsk–nordsamisk parallellkorpus, linjert setning for setning
+  sme: Davvisámegielat oassi dáru–davvisámi paralleallakorpusis, cealkka cealkkas ovttastuvvon
+  fin: Norja–pohjoissaame-rinnakkaiskorpuksen pohjoissaamenkielinen osa, rinnastettu lause lauseelta
+mode:
+  - name: parallel
+lang: sme
+linked_to:
+  - nob2sme_science_20191210-nob
+pos_attributes:
+  - pos: pos
+  - msd: msd
+  - lemma: lemma
+  - word: word
+struct_attributes:
+  - text_title: text_title
+  - text_lang: text_lang
+context:
+  - label:
+      eng: 1 sentence pair
+      nob: 1 setningspar
+      sme: 1 cealkkabárra
+      fin: 1 lausepari
+    value: 1 link
+within:
+  - label:
+      eng: sentence pair
+      nob: setningspar
+      sme: cealkkabárra
+      fin: lausepari
+    value: link

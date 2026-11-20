@@ -21,6 +21,31 @@ from pathlib import Path
 LANGS = ["sme", "nob", "fin", "rus"]
 TRANSLATIONS = Path(__file__).resolve().parent.parent / "gtweb2_config" / "translations"
 
+# Hand-written strings with no match in the old translations, appended to the
+# generated files (eng.yaml is hand-written and has the same keys).
+# lang.<code> names the languages in parallel mode's language select.
+EXTRA = {
+    "sme": {
+        "lang.sme": "Davvisámegiella",
+        "lang.nob": "Dárogiella",
+    },
+    "nob": {
+        "lang.sme": "Nordsamisk",
+        "lang.nob": "Norsk (bokmål)",
+        "search.parallel.add_query": "Legg til parallelt søk",
+        "search.parallel.remove_query": "Fjern søket for dette språket",
+        "search.parallel.instructions": "Bygg søk på ett eller flere språk ved å legge til bokser for tokens (ord) og vilkårene de skal oppfylle.",
+    },
+    "fin": {
+        "lang.sme": "Pohjoissaame",
+        "lang.nob": "Norja (bokmål)",
+    },
+    "rus": {
+        "lang.sme": "Северносаамский",
+        "lang.nob": "Норвежский (букмол)",
+    },
+}
+
 
 def read_flat_yaml(path):
     """korp-vue's locale files are flat `key: value` lines."""
@@ -64,6 +89,8 @@ def main(vue_eng_path, old_eng_path):
                     if escaped is not None:
                         lines.append(f"{key}: {json.dumps(escaped, ensure_ascii=False)}")
                         break
+        for key, text in EXTRA[lang].items():
+            lines.append(f"{key}: {json.dumps(text, ensure_ascii=False)}")
         Path("locale", f"{lang}.yaml").write_text("\n".join(lines) + "\n")
         print(f"locale/{lang}.yaml: {len(lines) - 2} of {len(vue_eng)} strings")
 

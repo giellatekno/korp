@@ -2,3 +2,6 @@
 # replace the ones that name Språkbanken. Other languages fall back to these.
 error.footer: If you have questions, or you want to report a bug, please contact Giellatekno (giellatekno.uit.no).
 auth.description: An account is only necessary if you need to access protected corpora.
+# Language names for parallel mode's language select (korp-vue only has Språkbanken's).
+lang.sme: North Saami
+lang.nob: Norwegian (Bokmål)
