@@ -1,0 +1,39 @@
+id: nob2smj_admin_20210929-nob
+title:
+  eng: Administrative texts
+  nob: Administrative tekster
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
+description:
+  eng: The Norwegian side of a Norwegian–Lule Saami parallel corpus, aligned sentence by sentence
+  nob: Den norske siden av et norsk–lulesamisk parallellkorpus, linjert setning for setning
+  sme: Dárogielat oassi dáru–julevsámi paralleallakorpusis, cealkka cealkkas ovttastuvvon
+  fin: Norja–luulajansaame-rinnakkaiskorpuksen norjankielinen osa, rinnastettu lause lauseelta
+mode:
+  - name: parallel
+lang: nob
+linked_to:
+  - nob2smj_admin_20210929-smj
+hide: true
+pos_attributes:
+  - pos: pos
+  - msd: msd
+  - lemma: lemma
+  - word: word
+struct_attributes:
+  - text_title: text_title
+  - text_lang: text_lang
+context:
+  - label:
+      eng: 1 sentence pair
+      nob: 1 setningspar
+      sme: 1 cealkkabárra
+      fin: 1 lausepari
+    value: 1 link
+within:
+  - label:
+      eng: sentence pair
+      nob: setningspar
+      sme: cealkkabárra
+      fin: lausepari
+    value: link

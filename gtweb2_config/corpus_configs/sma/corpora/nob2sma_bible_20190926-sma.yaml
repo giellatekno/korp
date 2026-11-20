@@ -1,0 +1,38 @@
+id: nob2sma_bible_20190926-sma
+title:
+  eng: Religion texts
+  nob: Religiøse tekster
+  sme: Oskkoldatlaš teavsttat
+  fin: Uskonnolliset tekstit
+description:
+  eng: The South Saami side of a Norwegian–South Saami parallel corpus, aligned sentence by sentence
+  nob: Den sørsamiske siden av et norsk–sørsamisk parallellkorpus, linjert setning for setning
+  sme: Lullisámegielat oassi dáru–lullisámi paralleallakorpusis, cealkka cealkkas ovttastuvvon
+  fin: Norja–eteläsaame-rinnakkaiskorpuksen eteläsaamenkielinen osa, rinnastettu lause lauseelta
+mode:
+  - name: parallel
+lang: sma
+linked_to:
+  - nob2sma_bible_20190926-nob
+pos_attributes:
+  - pos: pos
+  - msd: msd
+  - lemma: lemma
+  - word: word
+struct_attributes:
+  - text_title: text_title
+  - text_lang: text_lang
+context:
+  - label:
+      eng: 1 sentence pair
+      nob: 1 setningspar
+      sme: 1 cealkkabárra
+      fin: 1 lausepari
+    value: 1 link
+within:
+  - label:
+      eng: sentence pair
+      nob: setningspar
+      sme: cealkkabárra
+      fin: lausepari
+    value: link

@@ -1,0 +1,38 @@
+id: nob2fkv_facta_20210319-fkv
+title:
+  eng: Non-fiction texts
+  nob: Sakprosa
+  sme: Áššeprosa
+  fin: Asiatekstit
+description:
+  eng: The Kven side of a Norwegian–Kven parallel corpus, aligned sentence by sentence
+  nob: Den kvenske siden av et norsk–kvensk parallellkorpus, linjert setning for setning
+  sme: Kveanagielat oassi dáru–kveana paralleallakorpusis, cealkka cealkkas ovttastuvvon
+  fin: Norja–kveeni-rinnakkaiskorpuksen kveeninkielinen osa, rinnastettu lause lauseelta
+mode:
+  - name: parallel
+lang: fkv
+linked_to:
+  - nob2fkv_facta_20210319-nob
+pos_attributes:
+  - pos: pos
+  - msd: msd
+  - lemma: lemma
+  - word: word
+struct_attributes:
+  - text_title: text_title
+  - text_lang: text_lang
+context:
+  - label:
+      eng: 1 sentence pair
+      nob: 1 setningspar
+      sme: 1 cealkkabárra
+      fin: 1 lausepari
+    value: 1 link
+within:
+  - label:
+      eng: sentence pair
+      nob: setningspar
+      sme: cealkkabárra
+      fin: lausepari
+    value: link

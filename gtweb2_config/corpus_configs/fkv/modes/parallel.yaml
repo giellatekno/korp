@@ -1,0 +1,11 @@
+order: 2
+label:
+  nob: "Parallelltekster (norsk–kvensk)"
+  eng: "Parallel texts (Norwegian–Kven)"
+  sme: "Paralleallateavsttat (dáru–kveana)"
+  fin: "Rinnakkaistekstit (norja–kveeni)"
+# korp-vue's parallel mode: multilingual Extended search, linked sentences in
+# the KWIC. The corpora carry lang + linked_to; the fkv sides are listed, the
+# nob sides are hidden and come along with them.
+parallel: true
+start_lang: fkv

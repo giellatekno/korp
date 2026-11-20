@@ -1,0 +1,38 @@
+id: nob2smj_facta_20210929-smj
+title:
+  eng: Non-fiction texts
+  nob: Sakprosa
+  sme: Áššeprosa
+  fin: Asiatekstit
+description:
+  eng: The Lule Saami side of a Norwegian–Lule Saami parallel corpus, aligned sentence by sentence
+  nob: Den lulesamiske siden av et norsk–lulesamisk parallellkorpus, linjert setning for setning
+  sme: Julevsámegielat oassi dáru–julevsámi paralleallakorpusis, cealkka cealkkas ovttastuvvon
+  fin: Norja–luulajansaame-rinnakkaiskorpuksen luulajansaamenkielinen osa, rinnastettu lause lauseelta
+mode:
+  - name: parallel
+lang: smj
+linked_to:
+  - nob2smj_facta_20210929-nob
+pos_attributes:
+  - pos: pos
+  - msd: msd
+  - lemma: lemma
+  - word: word
+struct_attributes:
+  - text_title: text_title
+  - text_lang: text_lang
+context:
+  - label:
+      eng: 1 sentence pair
+      nob: 1 setningspar
+      sme: 1 cealkkabárra
+      fin: 1 lausepari
+    value: 1 link
+within:
+  - label:
+      eng: sentence pair
+      nob: setningspar
+      sme: cealkkabárra
+      fin: lausepari
+    value: link

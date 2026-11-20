@@ -5,3 +5,6 @@ auth.description: An account is only necessary if you need to access protected c
 # Language names for parallel mode's language select (korp-vue only has Språkbanken's).
 lang.sme: North Saami
 lang.nob: Norwegian (Bokmål)
+lang.sma: South Saami
+lang.smj: Lule Saami
+lang.fkv: Kven
