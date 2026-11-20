@@ -18,7 +18,9 @@ need to know (decisions, names, URLs) under the task.
   `wrangler.jsonc`, `manage.py`).
 - **Status (2026-11-19):** all 18 languages run end to end on the test
   account: `https://korp-<lang>.uit-anders.workers.dev` (frontend at `/`, API
-  at `/api`, corpora from R2). See task 7 for what's left.
+  at `/api`, corpora from R2). See task 7 for what's left. Since 2026-11-20
+  the parallel corpora are live too, as a `parallel` mode in sme, sma, smj,
+  fkv and smn (task 8).
 - **CWB data:** `~/misc/cwb/corpora/gt_cwb/{registry,data}` on Anders's machine
   has every corpus the configs reference (plus many old compilations; ignore
   its `config/` and `gt_cwb/`). Pass it with `--cwb-dir`.
@@ -192,6 +194,60 @@ Loose ends:
   is checking whether it should be in Korp at all (quality).
 - Cloudflare's bot check answers 403 (error 1010) to Python's default
   `urllib` User-Agent; set a User-Agent in scripts that call the API.
+
+## 8. Parallel corpora — DONE (deployed 2026-11-20)
+
+The sentence-aligned corpora (`xxx2yyy_<cat>_<date>-<lang>`: two CWB corpora
+per pair, linked by CWB alignment, `ALIGNED` in the registry) are a `parallel`
+mode in the instance of their minority language. Nothing new was needed in
+the backend, the frontend or `manage`: Korp 9 searches `BASE|ALIGNED` pairs,
+and korp-vue switches to its parallel search when the mode has
+`parallel: true`.
+
+| instance | pairs (from `gt_cwb`) |
+|---|---|
+| sme | `nob2sme_{admin,bible,facta,laws,science,mixed}_20191210` |
+| sma | `nob2sma_{admin,bible,facta,science}_20190926` |
+| smj | `nob2smj_{admin,facta}_20210929` |
+| fkv | `nob2fkv_{admin,bible,facta,ficti,news}_20210319` |
+| smn | `fin2smn_20170828` (no category; titled "Administrative texts") |
+
+Left out on purpose: the undated `nob2sme_20131127` and `nob2sma_20170828`
+(older compilations; the old gtweb1 config didn't use them either).
+
+How it's set up (`corpus_configs/<lang>/`, ported from the old gtweb1
+`~/projects/korp/frontend-setup/old_clientside_modes_on_gtweb1/parallel_mode.js`
+and `parallel_fin_mode.js`):
+- `modes/parallel.yaml`: `parallel: true`, `start_lang: <lang>`.
+- One `corpora/*.yaml` per side, with `lang` and `linked_to` (the other
+  side). The minority-language side is listed; the nob/fin side has
+  `hide: true` and is picked along with it. Either language can be the one
+  searched first (the language select in the search panel).
+- Context and within are `link` (the alignment unit), not `sentence`.
+- Both sides use the language's `pos`/`msd`/`lemma` attribute definitions;
+  the nob tags are the same GT style (nob has `IM`, which isn't in the `pos`
+  dropdown; typed CQP works).
+- UI strings: `lang.<code>` names the languages in the parallel language
+  select (korp-vue only has Språkbanken's). Added for sme, nob, sma, smj, fkv,
+  smn in every instance locale, plus nob translations of the
+  `search.parallel.*` strings; kept in `EXTRA` in
+  `korp-vue-instance/port-translations.py` so a rerun keeps them.
+
+Checked live: each instance serves the mode, and every pair answers an aligned
+concordance query in both directions (`corpora=A|B`,
+`cqp=[…] :LINKED_CORPUS:B […]`). Not yet clicked through in a browser.
+
+Loose ends:
+- **nob2fkv data is broken:** both sides are full of bogus `:` and `:\n`
+  tokens (47,707 `:` in `nob2fkv_admin_20210319-nob`, the most frequent
+  "word"), shown in results as "Ildsjeler : i : : fart :". A compile-time
+  artefact; needs recompiling. One facta hit also paired unrelated sentences
+  (one example only; extent unknown).
+- Native-speaker check of the wording made up for this: "cealkkabárra"
+  (sentence pair), the mode labels and descriptions in sme/fin, "Seaguhuvvon
+  teavsttat" (`mixed`), and the language names in sme/rus.
+- `search.parallel.add_query`/`remove_query`/`instructions` are only
+  translated in nob; sme/fin/rus show them in English.
 
 ## Later
 
