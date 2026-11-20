@@ -16,14 +16,18 @@ need to know (decisions, names, URLs) under the task.
   `claude-log` sections 4 (architecture) and 5 (Cloudflare gotchas); the code
   is in `~/gut/giellatekno/apertium` (`deploy/cloudflare/src/index.ts`,
   `wrangler.jsonc`, `manage.py`).
-- **Status (2026-11-19):** all 18 languages run end to end on the test
+- **Status (2026-11-20):** all 18 languages run end to end on the test
   account: `https://korp-<lang>.uit-anders.workers.dev` (frontend at `/`, API
-  at `/api`, corpora from R2). See task 7 for what's left. Since 2026-11-20
-  the parallel corpora are live too, as a `parallel` mode in sme, sma, smj,
-  fkv and smn (task 8).
+  at `/api`, corpora from R2), publicly behind `https://gtweb.uit.no/korp/<lang>/`
+  (*Later*, prod account), including sme's historical-orthography modes
+  (task 7) and the parallel corpora (task 8). Open: task 6, the loose ends
+  under tasks 7 and 8, and *Later*.
 - **CWB data:** `~/misc/cwb/corpora/gt_cwb/{registry,data}` on Anders's machine
   has every corpus the configs reference (plus many old compilations; ignore
-  its `config/` and `gt_cwb/`). Pass it with `--cwb-dir`.
+  its `config/` and `gt_cwb/`), except sme's historical-orthography corpora,
+  which are in `gen-altorth-korps/generated/cwb/`. Pass them with `--cwb-dir`
+  (repeatable, searched in order); a corpus not found locally is taken from
+  the language's current release in R2.
 - **Accounts:** test = "UiT / Anders Lorentsen" (`manage/CLOUDFLARE_ACCOUNT_ID`,
   has Workers Paid/Containers), prod = "Giellatekno" (no Workers Paid yet). Work
   on test.
@@ -100,8 +104,12 @@ langs/<lang>/current              text: the release id in use, e.g. 20261119T082
   derived from the API token. `--cwb-dir` defaults to `../cwb-data`.
 - Sizes: CWB data is already compressed (sme_news 343 MB → 282 MB with zstd
   -19); the download dominates cold start.
-- In R2 now: all 18 languages (one release each, 2026-11-19; fkv's is
-  `20261119T082811Z`). sme was uploaded with `--skip-missing` (task 7).
+- In R2 now: all 18 languages, first uploaded 2026-11-19; sme, sma, smj, fkv
+  and smn have newer releases from 2026-11-20 (historical orthography,
+  parallel corpora). `manage data list <lang>` shows a language's releases.
+- New or changed data or corpus configs only need `data upload <lang>` +
+  `restart <lang>`; `deploy` is only for frontend (`korp-vue-instance/`,
+  `front/`) or Worker/image changes.
 
 ### 4. API Worker — DONE
 
@@ -173,14 +181,19 @@ start 16–34 s, mhr the slowest); a concordance search on every corpus works
 the largest (1.18 GB); it fits the default container (1 vCPU, 1 GB, 2 GB
 disk), since the entrypoint streams archives into `tar`.
 
+sme's historical-orthography corpora (`friis_bible`, `friis_ficti`,
+`friis_news`, `itkonen_news`, `leem_bible`, `leem_ficti`; modes `friis`,
+`leem`, `itkonen`) were missing at first. Since 2026-11-20 they're compiled
+by `gen-altorth-korps/` (its hfst-tokenize memory fix is described in
+`debugging-crash.md`, untracked, in the main checkout's root) and live,
+uploaded with:
+
+```
+cargo run --release -- data upload sme --cwb-dir ../gen-altorth-korps/generated/cwb --cwb-dir ~/misc/cwb/corpora/gt_cwb
+cargo run --release -- restart sme
+```
+
 Loose ends:
-- **sme's historical-orthography corpora** (`friis_bible`, `friis_ficti`,
-  `friis_news`, `itkonen_news`, `leem_bible`, `leem_ficti`) were never
-  compiled, so sme was uploaded with `--skip-missing`. Its modes `friis`,
-  `leem` and `itkonen` still list them (`/api/corpora/config?mode=friis`), so
-  choosing one of those modes in the frontend fails. Either remove those modes
-  from `corpus_configs/sme/` until the corpora exist, or compile them
-  (`gen-altorth-korps/`, see *Later*).
 - **mhr_news_20201209:** the match-everything query `[]` gives a 500
   ("unexpected backend error"); normal word searches work (~0.2 s). Probably
   memory (1 GB) when counting all hits of a large corpus; check the container
@@ -277,10 +290,10 @@ Loose ends:
   - Workers `korp-smi`, `korp-nsu`, `korp-other`; check their modes with Korp 9.
 - More management commands: `status`, `logs`, `usage`, `images list|prune`
   (ideas from Apertium's `manage.py`).
-- Prod account (needs Workers Paid), URLs (gtweb.uit.no reverse proxy like
-  `/jorgal/`, see `claude-log` section 5). The selector page
-  (`selector-page/index.html`, redesigned 2026-11-19) links to
-  `https://gtweb-02.uit.no/korp/<lang>`; change the links when the URLs are
-  decided (the test URLs are `https://korp-<lang>.uit-anders.workers.dev`).
-- Historical-orthography corpora (`gen-altorth-korps/`).
+- Prod account (needs Workers Paid). The public URLs already work:
+  `https://gtweb.uit.no/korp/<lang>/` is an nginx reverse proxy (like
+  `/jorgal/`, see `claude-log` section 5) to the test account's
+  `korp-<lang>.uit-anders.workers.dev` (all 18 checked 2026-11-20), and the
+  selector page (`selector-page/index.html`) links there. Moving to prod means
+  repointing the proxy.
 - Update `README.md` (it describes the old gtweb-02 setup).
