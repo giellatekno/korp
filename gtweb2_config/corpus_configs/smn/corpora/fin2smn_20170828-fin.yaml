@@ -1,0 +1,39 @@
+id: fin2smn_20170828-fin
+title:
+  eng: Administrative texts
+  nob: Administrative tekster
+  sme: Hálddahuslaš teavsttat
+  fin: Hallinnolliset tekstit
+description:
+  eng: The Finnish side of a Finnish–Inari Saami parallel corpus, aligned sentence by sentence
+  nob: Den finske siden av et finsk–enaresamisk parallellkorpus, linjert setning for setning
+  sme: Suomagielat oassi suoma–anársámi paralleallakorpusis, cealkka cealkkas ovttastuvvon
+  fin: Suomi–inarinsaame-rinnakkaiskorpuksen suomenkielinen osa, rinnastettu lause lauseelta
+mode:
+  - name: parallel
+lang: fin
+linked_to:
+  - fin2smn_20170828-smn
+hide: true
+pos_attributes:
+  - pos: pos
+  - msd: msd
+  - lemma: lemma
+  - word: word
+struct_attributes:
+  - text_title: text_title
+  - text_lang: text_lang
+context:
+  - label:
+      eng: 1 sentence pair
+      nob: 1 setningspar
+      sme: 1 cealkkabárra
+      fin: 1 lausepari
+    value: 1 link
+within:
+  - label:
+      eng: sentence pair
+      nob: setningspar
+      sme: cealkkabárra
+      fin: lausepari
+    value: link

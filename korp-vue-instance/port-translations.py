@@ -31,6 +31,7 @@ EXTRA = {
         "lang.sma": "Lullisámegiella",
         "lang.smj": "Julevsámegiella",
         "lang.fkv": "Kveanagiella",
+        "lang.smn": "Anárašgiella",
     },
     "nob": {
         "lang.sme": "Nordsamisk",
@@ -38,6 +39,7 @@ EXTRA = {
         "lang.sma": "Sørsamisk",
         "lang.smj": "Lulesamisk",
         "lang.fkv": "Kvensk",
+        "lang.smn": "Enaresamisk",
         "search.parallel.add_query": "Legg til parallelt søk",
         "search.parallel.remove_query": "Fjern søket for dette språket",
         "search.parallel.instructions": "Bygg søk på ett eller flere språk ved å legge til bokser for tokens (ord) og vilkårene de skal oppfylle.",
@@ -48,6 +50,7 @@ EXTRA = {
         "lang.sma": "Eteläsaame",
         "lang.smj": "Luulajansaame",
         "lang.fkv": "Kveeni",
+        "lang.smn": "Inarinsaame",
     },
     "rus": {
         "lang.sme": "Северносаамский",
@@ -55,6 +58,7 @@ EXTRA = {
         "lang.sma": "Южносаамский",
         "lang.smj": "Луле-саамский",
         "lang.fkv": "Квенский",
+        "lang.smn": "Инари-саамский",
     },
 }
 

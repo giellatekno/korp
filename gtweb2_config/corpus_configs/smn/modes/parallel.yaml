@@ -1,0 +1,11 @@
+order: 2
+label:
+  nob: "Parallelltekster (finsk–enaresamisk)"
+  eng: "Parallel texts (Finnish–Inari Saami)"
+  sme: "Paralleallateavsttat (suoma–anársámi)"
+  fin: "Rinnakkaistekstit (suomi–inarinsaame)"
+# korp-vue's parallel mode: multilingual Extended search, linked sentences in
+# the KWIC. The corpora carry lang + linked_to; the smn side is listed, the
+# fin side is hidden and comes along with it.
+parallel: true
+start_lang: smn
