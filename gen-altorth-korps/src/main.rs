@@ -14,7 +14,14 @@ use crate::cli::CachePolicy;
 //use hfst::pmatch::PmatchContainer;
 
 fn is_sentence_separator(s: &str) -> bool {
-    matches!(s, "." | "?" | "!" | "¶")
+    matches!(s, "." | "?" | "!")
+}
+
+/// A paragraph break in hfst-tokenize output: an empty line (which is what a
+/// blank line in the input becomes), or a `¶`. It ends the current sentence,
+/// but is not a token itself.
+fn is_paragraph_break(s: &str) -> bool {
+    s.is_empty() || s == "¶"
 }
 
 struct SplitSentences<'a> {
@@ -33,10 +40,14 @@ impl<'a> Iterator for SplitSentences<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         let mut cur = vec![];
         while let Some(item) = self.it.next() {
-            if item != "¶" {
-                cur.push(item);
+            if is_paragraph_break(item) {
+                if !cur.is_empty() {
+                    return Some(cur);
+                }
+                continue;
             }
 
+            cur.push(item);
             if is_sentence_separator(item) {
                 return Some(cur);
             }
@@ -152,8 +163,8 @@ fn gather_texts(
         };
 
         let text = Text::from_doc(&xml_doc, category.as_str());
-        let text_body = xmlnode_get_all_inner_text(&body);
-        let tokenized = match get_tokenized(&path, &text_body, cache_policy) {
+        let paragraphs = body_paragraphs(&body);
+        let tokenized = match get_tokenized(&path, &paragraphs, cache_policy) {
             GetTokenizedResult::Ok(t) => t,
             GetTokenizedResult::OnlyCached => {
                 continue;
@@ -228,7 +239,33 @@ enum GetTokenizedResult {
     Err(anyhow::Error),
 }
 
-fn get_tokenized(path: &Path, text_body: &str, cache_policy: CachePolicy) -> GetTokenizedResult {
+/// Max size of the text given to one hfst-tokenize process. hfst-tokenize's
+/// memory use keeps growing with the amount of input it has seen (~4 GB for
+/// ~700 KB of text), so large files are tokenized in several runs, each well
+/// within the prlimit below. Paragraphs are never split across runs.
+const TOKENIZE_CHUNK_BYTES: usize = 100_000;
+
+/// Group paragraphs into chunks of at most `TOKENIZE_CHUNK_BYTES` (a single
+/// larger paragraph gets a chunk of its own), joined by blank lines.
+fn chunk_paragraphs(paragraphs: &[String]) -> Vec<String> {
+    let mut chunks = vec![];
+    let mut cur = String::new();
+    for p in paragraphs {
+        if !cur.is_empty() && cur.len() + 2 + p.len() > TOKENIZE_CHUNK_BYTES {
+            chunks.push(std::mem::take(&mut cur));
+        }
+        if !cur.is_empty() {
+            cur.push_str("\n\n");
+        }
+        cur.push_str(p);
+    }
+    if !cur.is_empty() {
+        chunks.push(cur);
+    }
+    chunks
+}
+
+fn get_tokenized(path: &Path, paragraphs: &[String], cache_policy: CachePolicy) -> GetTokenizedResult {
     let tokenizer = "/usr/share/giella/sme/tokeniser-disamb-gt-desc.pmhfst";
     let cached_tokenized_path = path.with_added_extension("tokenized");
     match std::fs::read_to_string(&cached_tokenized_path) {
@@ -237,10 +274,32 @@ fn get_tokenized(path: &Path, text_body: &str, cache_policy: CachePolicy) -> Get
             if cache_policy == CachePolicy::Require {
                 return GetTokenizedResult::OnlyCached;
             }
-            let tokenized = match run_fun!(echo $text_body | hfst-tokenize $tokenizer) {
-                Ok(t) => t,
-                Err(e) => return GetTokenizedResult::Err(anyhow::anyhow!(e)),
-            };
+            // anders: hfst-tokenize is potentially very memory-hungry, up to the point where
+            // a system can completely freeze due to heavy memory pressure (which is presumably
+            // not a technical deadlock or processor halt, but the kernel itself being unable
+            // to do anything but wait for the memory system, for an amount of time that is
+            // unacceptable, so we are right to perceive it as a freeze.)
+            // Therefore: limit the virtual address space (not physical RAM, but it bounds it)
+            // of the hfst-tokenize process to ~6GB, and kill it after 15 CPU seconds.
+            // `prlimit` (util-linux) is used rather than `ulimit`, because `ulimit` is a shell
+            // builtin that can't wrap a command, and cmd_lib doesn't run a shell.
+            // Note: prlimit takes bytes; `ulimit -v` takes KiB.
+            let mut tokenized = String::new();
+            for chunk in chunk_paragraphs(paragraphs) {
+                match run_fun!(echo $chunk | prlimit --as=6000000000 --cpu=15 hfst-tokenize $tokenizer) {
+                    Ok(t) => {
+                        tokenized.push_str(&t);
+                        // empty line = paragraph break between chunks (see split_sentences)
+                        tokenized.push_str("\n\n");
+                    }
+                    Err(e) => {
+                        return GetTokenizedResult::Err(anyhow::anyhow!(
+                            "hfst-tokenize failed on {}: {e}",
+                            path.display()
+                        ))
+                    }
+                }
+            }
             match std::fs::write(&cached_tokenized_path, tokenized.as_bytes()) {
                 Ok(_) => {}
                 Err(e) => return GetTokenizedResult::Err(anyhow::anyhow!(e)),
@@ -437,19 +496,26 @@ fn remove_unneeded_files(path: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-fn xmlnode_get_all_inner_text(node: &roxmltree::Node) -> String {
-    let mut s = String::new();
-    if let Some(t) = node.text() {
-        s.push_str(t);
-    };
-    for des in node.descendants() {
-        if &des != node {
-            if des.has_children() {
-                s.push_str(&xmlnode_get_all_inner_text(&des));
-            }
-        }
-    }
-    s
+/// The text of each `<p>` in the body, in document order, with whitespace
+/// collapsed. Includes text inside `<span>`s etc. All text in the hist/ bodies
+/// is inside `<p>`s (which may be inside `<section>`s).
+///
+/// The paragraphs are kept apart, so they can be given to hfst-tokenize
+/// separated by blank lines. That keeps its memory use in check, and
+/// marks paragraph boundaries (previously, paragraphs were glued together
+/// without even a space, merging the last and first word of adjacent
+/// paragraphs, and text after a `</span>` was lost).
+fn body_paragraphs(body: &roxmltree::Node) -> Vec<String> {
+    body.descendants()
+        .filter(|n| n.has_tag_name("p"))
+        // a <p> nested in another <p> is covered by the outer one
+        .filter(|p| !p.ancestors().skip(1).any(|a| a.has_tag_name("p")))
+        .map(|p| {
+            let text: String = p.descendants().filter_map(|n| n.is_text().then(|| n.text()).flatten()).collect();
+            text.split_whitespace().collect::<Vec<_>>().join(" ")
+        })
+        .filter(|s| !s.is_empty())
+        .collect()
 }
 
 fn main() -> anyhow::Result<()> {
