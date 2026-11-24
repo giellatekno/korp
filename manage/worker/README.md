@@ -87,6 +87,7 @@ only `FROM korp-backend:<tag>` (or set `"mtu"` in docker's daemon.json).
 - Archives: 6.6 MB zstd -19 (15 MB unpacked), 5 corpora + config 3 KB.
 - Cold start through the Worker (`wrangler dev`): 1.9 s from request to
   answer (download + unpack < 1 s, gunicorn ~1 s). After a restart: 1.4 s.
-- Memory: ~265 MiB with 4 gunicorn workers, idle. Default size
-  `{vcpu: 1, memoryMib: 1024, diskMb: 2000}`; override per language with the
+- Memory: ~265 MiB with 4 gunicorn workers, idle; with 2 workers (the
+  default since 2026-11-24) ~140 MiB idle, ~290 MiB under load. Default size
+  `{vcpu: 1, memoryMib: 512, diskMb: 2000}`; override per language with the
   var `CONTAINER_INSTANCE` (JSON). Measure again on Cloudflare, and for sme.

@@ -48,7 +48,7 @@
   "vars": {
     // The language, e.g. "fkv": picks langs/<KORP_LANG>/ in R2
     "KORP_LANG": "fkv",
-    // Container size, as JSON: {"vcpu": 1, "memoryMib": 1024, "diskMb": 2000},
+    // Container size, as JSON: {"vcpu": 1, "memoryMib": 512, "diskMb": 2000},
     // or a named type like "\"standard-1\"". Empty: DEFAULT_RESOURCES in src/index.ts.
     "CONTAINER_INSTANCE": "",
     // Korp's CORS_ALLOW_ORIGINS, a JSON list, e.g. ["https://gtweb.uit.no"].

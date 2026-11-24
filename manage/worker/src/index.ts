@@ -29,11 +29,14 @@ const KORP_PORT = 8000;
 // One container per language. Name it differently to start a fresh one.
 const KORP_INSTANCE = 'korp-0';
 // Used when CONTAINER_INSTANCE is empty. CPU is billed by use, memory and disk
-// by what's provisioned. The disk must hold the unpacked corpora.
-const DEFAULT_RESOURCES = { vcpu: 1, memoryMib: 1024, diskMb: 2000 };
-// Stop the container after this long without requests (max 6 h). Every start
-// downloads and unpacks the corpora, see STARTUP_TIMEOUT_MS.
-const IDLE_TIMEOUT_MS = 6 * 60 * 60 * 1000;
+// by what's provisioned (memory is most of the bill: ~$6.6/GiB/month awake).
+// The disk must hold the unpacked corpora. Korp with 2 gunicorn workers uses
+// ~140 MiB idle, ~290 MiB under load (fkv, locally).
+const DEFAULT_RESOURCES = { vcpu: 1, memoryMib: 512, diskMb: 2000 };
+// Stop the container after this long without requests (max 6 h). Billing runs
+// while it's awake, so keep it short. Every start downloads and unpacks the
+// corpora, see STARTUP_TIMEOUT_MS.
+const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
 // How long to wait for Korp to answer after starting the container: download
 // and unpack of the corpora + gunicorn startup.
 const STARTUP_TIMEOUT_MS = 5 * 60_000;
