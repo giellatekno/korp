@@ -6,6 +6,9 @@
 //
 //   /api/*               → korp-backend (Korp 9 API, prefix stripped), e.g.
 //                          /api/info, /api/concordance?corpora=…&cqp=…
+//                          (/api/info, /api/corpora/config, /api/corpora/info
+//                          are answered from the Durable Object's storage once
+//                          seen, so a page load doesn't start the container)
 //   POST /admin/restart  (Authorization: Bearer $ADMIN_TOKEN)
 //                        → stop the container; the next request starts a new
 //                          one, with the language's current release from R2
@@ -43,6 +46,20 @@ const STARTUP_TIMEOUT_MS = 5 * 60_000;
 
 const RELEASE_ID = /^[0-9]{8}T[0-9]{6}Z$/;
 
+// GET requests that every page load of the frontend makes (corpora/config and
+// corpora/info; info for good measure). Their answers only change with the
+// release, so the Durable Object keeps them in its storage, per release, and
+// answers them without starting the container. A page view alone (a crawler,
+// a link preview, someone who looks but doesn't search) then costs nothing.
+const CACHED_PATHS = new Set(['/info', '/corpora/config', '/corpora/info']);
+// Storage values can be at most 2 MiB; the answers are ~15 KB
+const MAX_CACHED_BYTES = 1_000_000;
+
+interface CachedResponse {
+  body: string;
+  contentType: string;
+}
+
 // langs/<lang>/<release>.json, as written by `manage data upload` (src/corpora.rs)
 interface Release {
   lang: string;
@@ -51,8 +68,11 @@ interface Release {
   corpora: Record<string, { key: string; size: number }>;
 }
 
+const currentReleaseId = async (env: Env): Promise<string | undefined> =>
+  (await (await env.DATA.get(`langs/${env.KORP_LANG}/current`))?.text())?.trim() || undefined;
+
 const currentRelease = async (env: Env): Promise<Release> => {
-  const id = (await (await env.DATA.get(`langs/${env.KORP_LANG}/current`))?.text())?.trim();
+  const id = await currentReleaseId(env);
   if (!id) throw new Error(`no langs/${env.KORP_LANG}/current in R2: upload with \`manage data upload ${env.KORP_LANG}\``);
   const release = await loadRelease(env, id);
   if (!release) throw new Error(`langs/${env.KORP_LANG}/current names ${id}, which isn't in R2`);
@@ -64,6 +84,11 @@ const loadRelease = async (env: Env, id: string): Promise<Release | null> => {
   const object = await env.DATA.get(`langs/${env.KORP_LANG}/${id}.json`);
   return object ? ((await object.json()) as Release) : null;
 };
+
+// Durable Object storage: RELEASE_KEY holds the release the container was
+// last started with; cacheKey(…) the answers to CACHED_PATHS.
+const RELEASE_KEY = 'release';
+const cacheKey = (release: string, url: URL): string => `cache:${release}:${url.pathname}${url.search}`;
 
 export class Korp extends DurableObject<Env> {
   // Shared by concurrent requests while the container starts
@@ -85,6 +110,14 @@ export class Korp extends DurableObject<Env> {
   }
 
   async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const cacheable = request.method === 'GET' && CACHED_PATHS.has(url.pathname);
+    if (cacheable) {
+      const release = await this.servingRelease();
+      const hit = release && this.ctx.storage.kv.get<CachedResponse>(cacheKey(release, url));
+      if (hit) return new Response(hit.body, { headers: { 'content-type': hit.contentType, 'x-korp-cache': 'hit' } });
+    }
+
     try {
       await (this.ready ??= this.startAndWait());
     } catch (error) {
@@ -92,8 +125,36 @@ export class Korp extends DurableObject<Env> {
       console.error('Korp failed to start:', error);
       return Response.json({ error: 'The corpus search service is starting or unavailable, try again shortly.' }, { status: 503 });
     }
-    const url = new URL(request.url);
-    return this.container.getTcpPort(KORP_PORT).fetch(new Request(`http://container${url.pathname}${url.search}`, request));
+    const response = await this.container
+      .getTcpPort(KORP_PORT)
+      .fetch(new Request(`http://container${url.pathname}${url.search}`, request));
+
+    // Stored under the release the container actually runs, which can differ
+    // from the one looked up above if a new one was uploaded meanwhile
+    const release = this.ctx.storage.kv.get<string>(RELEASE_KEY);
+    if (!cacheable || !response.ok || !release) return response;
+    const body = await response.text();
+    const contentType = response.headers.get('content-type') ?? 'application/json';
+    if (body.length <= MAX_CACHED_BYTES) {
+      this.ctx.storage.kv.put<CachedResponse>(cacheKey(release, url), { body, contentType });
+    }
+    return new Response(body, { status: response.status, headers: { 'content-type': contentType, 'x-korp-cache': 'miss' } });
+  }
+
+  // The release whose answers are valid now: the running container's, or if
+  // none runs, the one the next start will load.
+  private async servingRelease(): Promise<string | undefined> {
+    return this.ctx.container?.running ? this.ctx.storage.kv.get<string>(RELEASE_KEY) : await currentReleaseId(this.env);
+  }
+
+  // Remembers the release the container runs, and drops cached answers of
+  // other releases.
+  private setRelease(release: string): void {
+    const kv = this.ctx.storage.kv;
+    kv.put(RELEASE_KEY, release);
+    for (const [key] of kv.list({ prefix: 'cache:' })) {
+      if (!key.startsWith(`cache:${release}:`)) kv.delete(key);
+    }
   }
 
   // Stops the container; the next request starts a new one, which fetches the
@@ -116,6 +177,7 @@ export class Korp extends DurableObject<Env> {
       const release = await currentRelease(this.env);
       const corpora = Object.keys(release.corpora).sort();
       console.log(`Starting Korp with release ${release.release}: ${corpora.length} corpora`);
+      this.setRelease(release.release);
       // Intercepts must be registered before start(), and again for each new container
       await container.interceptOutboundHttp('data.internal', this.ctx.exports.DataHandler);
       container.start({
