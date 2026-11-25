@@ -145,6 +145,16 @@ concordance search through the API works. The old Korp 8 frontend Workers
 Left (small): translations of attribute values
 (`gtweb2_config/translations/corpora-<lang>.json`) aren't ported to korp-vue.
 
+### Combined instances `smi` / `nsu` / `other` — WON'T HAPPEN (decided 2026-11-25)
+
+**Won't happen: they're only a historical artifact of the previous setup, and
+we have no use for them now.** The directories `smi`, `nsu` and `other` in
+`gtweb2_config/corpus_configs/` (and `front/`) come from the old gtweb-02
+setup, where one Korp held several languages as *modes* (smi: all Sámi
+languages; nsu: non-Sámi Uralic; other: the rest). Every corpus in them is
+served by the 18 single-language instances. The directories are left as they
+are; `manage` only accepts the 18 language codes.
+
 ---
 
 ## 6. Check corpus configs against Korp 9 (independent)
@@ -267,27 +277,32 @@ Loose ends:
 - Cold start: 16–34 s per language (fkv 26 s on its first deploy). Break it
   down (provisioning vs. R2 download vs. unpack); choose the instance size
   from measured peak memory, per language (mhr's data is ~180× fkv's).
-- **Combined instances `smi` / `nsu` / `other` (parked; maybe dropped).**
-  `gtweb2_config/corpus_configs/` (and `front/`) has three directories that
-  aren't language codes, from the old setup where one Korp held several
-  languages as *modes*. Anders wants to move away from them; their corpora are
-  all in the single-language instances. If they're wanted after all:
+- **Containers run ~30 min after the last request, not the intended 15
+  (possible cost cut, optional).** Seen in the containers API (2026-11-25):
+  e.g. mrj's last request 02:06:44 UTC, stopped 02:36:20; smn 03:24:07 →
+  03:54:04. Two 15-minute periods add up:
+  1. `setInactivityTimeout(IDLE_TIMEOUT_MS)` (15 min) counts from when the
+     *Durable Object* becomes inactive, not from the last request (Containers
+     docs, "Durable Object Container" → `setInactivityTimeout`, and the
+     "Status Hooks" example).
+  2. `watchExit()` in `manage/worker/src/index.ts` does
+     `this.ctx.waitUntil(container.monitor()…)`. The monitor promise only
+     settles when the container stops, and per the docs "a pending monitor
+     can keep the Durable Object active for up to 15 minutes".
 
-  | instance | contents | default mode | other modes |
-  |---|---|---|---|
-  | `smi` | all Sámi languages | sme | sma, smj, smn, sms |
-  | `nsu` | non-Sámi Uralic | kpv | koi, mdf, mhr, mrj, myv, udm |
-  | `other` | the rest | fkv | fao, fit, olo, vep, vro |
-
-  - No data of their own: archives are content-addressed, so `data upload`
-    reuses the per-language archives already in R2. `nsu` (22 corpora) and
-    `other` (22) list exactly their languages' corpora; `smi` (39) has
-    `sme_wikipedia_20211118` (see task 7) and lacks sme's
-    historical-orthography corpora (fine, per Anders).
-  - Add `smi`, `nsu`, `other` to `manage/src/lang.rs` (only the 18 language
-    codes are accepted now), and check that nothing treats the instance name
-    as a language code (a locale, `LC_COLLATE`, the frontend's default language).
-  - Workers `korp-smi`, `korp-nsu`, `korp-other`; check their modes with Korp 9.
+  Fix: in `watchExit()`, keep the `monitor().then/.catch/.finally` chain but
+  don't pass it to `ctx.waitUntil` (`void container.monitor()…`). The
+  handlers still run whenever the DO is in memory, which is the only time
+  `this.ready` needs resetting (a DO that was evicted has no `ready` anyway).
+  The cost: the "Korp container stopped" log line is sometimes lost.
+  Alternatively, or as well, lower `IDLE_TIMEOUT_MS`. Then
+  `manage deploy <lang>` for all 18, and check the stop times with the
+  containers API: `GET /accounts/<id>/containers/applications`, then
+  `…/applications/<app id>/instances-v2` (`status.state`, `started_at`,
+  `status.updated_at`). The MCP Cloudflare connection lacks containers
+  permission; the token in `manage/.CLOUDFLARE_API_TOKEN` works. Trade-off:
+  at 15 min, a user who pauses 15–30 min between searches waits for a cold
+  start (5–20 s) again.
 - More management commands: `status`, `logs`, `usage`, `images list|prune`
   (ideas from Apertium's `manage.py`).
 - Prod account (needs Workers Paid). The public URLs already work:
